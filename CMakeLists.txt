@@ -6,3 +6,9 @@ cmake_minimum_required(VERSION 3.25)
 
   add_executable(MC-RayTracing src/main.cpp)
   target_link_libraries(MC-RayTracing ${SDL2_LIBRARIES})
+
+  file(GLOB_RECURSE LIB_HEADERS lib/*.h)
+  foreach(FILE ${LIB_HEADERS})
+      get_filename_component(DIR_PATH ${FILE} PATH)
+      include_directories(${DIR_PATH})
+  endforeach()
