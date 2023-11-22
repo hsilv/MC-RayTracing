@@ -12,23 +12,28 @@ Color Background = {0, 0, 0};
 const float ASPECT_RATIO = static_cast<float>(SCREEN_WIDTH) / static_cast<float>(SCREEN_HEIGHT);
 
 /* std::vector<Object> objects; */
-thrust::device_vector<Object> objects;
+thrust::device_vector<ObjectWrapper> objects;
 
-__global__ void render(Point *buffer, Object* objects, int numObjects)
+Sphere *dev_sphere;
+
+__global__ void render(Point *buffer, ObjectWrapper *objects, int numObjects)
 {
 
   int index = blockIdx.x * blockDim.x + threadIdx.x;
   int x = index % SCREEN_WIDTH;
   int y = index / SCREEN_WIDTH;
 
-  float screenX =  ((2.0f * x) / SCREEN_WIDTH) - 1.0f;
+  float screenX = ((2.0f * x) / SCREEN_WIDTH) - 1.0f;
   float screenY = -((2.0f * y) / SCREEN_HEIGHT) + 1.0f;
+  screenX *= ASPECT_RATIO;
 
-  if(screenX > 1.0f || screenX < -1.0f){
+  if (screenX > 1.0f || screenX < -1.0f)
+  {
     return;
   }
 
-  if(screenY > 1.0f || screenY < -1.0f){
+  if (screenY > 1.0f || screenY < -1.0f)
+  {
     return;
   }
 
@@ -37,7 +42,26 @@ __global__ void render(Point *buffer, Object* objects, int numObjects)
   Point p = {x, y, 0, pixelColor};
 
   buffer[index] = p;
+}
 
+void setUp()
+{
+
+  cudaMalloc(&dev_sphere, sizeof(Sphere));
+  Sphere tempSphere = Sphere(glm::vec3(0.0f, 0.0f, -5.0f), 1.0f);
+  cudaMemcpy(dev_sphere, &tempSphere, sizeof(Sphere), cudaMemcpyHostToDevice);
+
+  ObjectWrapper sphereWrapper;
+
+  sphereWrapper.obj = dev_sphere;
+  sphereWrapper.type = ObjectType::SPHERE;
+
+  objects.push_back(sphereWrapper);
+}
+
+void destroy()
+{
+   cudaFree(dev_sphere);
 }
 
 int main(int argc, char *argv[])
@@ -75,6 +99,8 @@ int main(int argc, char *argv[])
 
   bool running = true;
 
+  setUp();
+
   while (running)
   {
     startFPS();
@@ -93,7 +119,7 @@ int main(int argc, char *argv[])
 
     initBuffer();
 
-    Object* raw_ptr = thrust::raw_pointer_cast(objects.data());
+    ObjectWrapper *raw_ptr = thrust::raw_pointer_cast(objects.data());
 
     render<<<numBlocks, numCores>>>(dev_buffer, raw_ptr, objects.size());
     cudaDeviceSynchronize();
@@ -105,6 +131,8 @@ int main(int argc, char *argv[])
 
     endFPS(window);
   }
+
+  destroy();
 
   SDL_DestroyWindow(window);
   SDL_Quit();

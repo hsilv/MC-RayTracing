@@ -18,7 +18,7 @@ foreach(FILE ${LIB_HEADERS})
     include_directories(${DIR_PATH})
 endforeach()
 
-file(GLOB_RECURSE SRC_FILES src/*.cpp src/*.cu)
+file(GLOB_RECURSE SRC_FILES src/*.cpp src/*.cu lib/*.cpp)
 add_executable(MC-RayTracing ${SRC_FILES})
 target_link_libraries(MC-RayTracing ${SDL2_LIBRARIES})
 
