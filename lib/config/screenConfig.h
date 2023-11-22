@@ -5,5 +5,6 @@
 
 #define SCREEN_WIDTH  1280
 #define SCREEN_HEIGHT 720
+#define FOV M_PI/3.0f;
 
 #endif  

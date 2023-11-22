@@ -14,11 +14,9 @@ const float ASPECT_RATIO = static_cast<float>(SCREEN_WIDTH) / static_cast<float>
 /* std::vector<Object> objects; */
 thrust::device_vector<ObjectWrapper> objects;
 
-Sphere *dev_sphere;
-
 __global__ void render(Point *buffer, ObjectWrapper *objects, int numObjects)
 {
-
+  float fov = FOV;
   int index = blockIdx.x * blockDim.x + threadIdx.x;
   int x = index % SCREEN_WIDTH;
   int y = index / SCREEN_WIDTH;
@@ -26,16 +24,8 @@ __global__ void render(Point *buffer, ObjectWrapper *objects, int numObjects)
   float screenX = ((2.0f * x) / SCREEN_WIDTH) - 1.0f;
   float screenY = -((2.0f * y) / SCREEN_HEIGHT) + 1.0f;
   screenX *= ASPECT_RATIO;
-
-  if (screenX > 1.0f || screenX < -1.0f)
-  {
-    return;
-  }
-
-  if (screenY > 1.0f || screenY < -1.0f)
-  {
-    return;
-  }
+  screenX *= tan(fov / 2.0f);
+  screenY *= tan(fov / 2.0f);
 
   glm::vec3 rayDirection = glm::normalize(glm::vec3(screenX, screenY, -1.0f));
   Color pixelColor = castRay(glm::vec3(0.0f, 0.0f, 0.0f), rayDirection, objects, numObjects);
@@ -46,22 +36,40 @@ __global__ void render(Point *buffer, ObjectWrapper *objects, int numObjects)
 
 void setUp()
 {
-
+  Sphere *dev_sphere;
   cudaMalloc(&dev_sphere, sizeof(Sphere));
   Sphere tempSphere = Sphere(glm::vec3(0.0f, 0.0f, -5.0f), 1.0f);
   cudaMemcpy(dev_sphere, &tempSphere, sizeof(Sphere), cudaMemcpyHostToDevice);
 
-  ObjectWrapper sphereWrapper;
+  ObjectWrapper sphereWrapper1;
 
-  sphereWrapper.obj = dev_sphere;
-  sphereWrapper.type = ObjectType::SPHERE;
+  sphereWrapper1.obj = dev_sphere;
+  sphereWrapper1.type = ObjectType::SPHERE;
 
-  objects.push_back(sphereWrapper);
+
+  Sphere *dev_sphere2;
+  cudaMalloc(&dev_sphere2, sizeof(Sphere));
+  Sphere tempSphere2 = Sphere(glm::vec3(-1.0f, 0.0f, -3.5f), 1.0f);
+  cudaMemcpy(dev_sphere2, &tempSphere2, sizeof(Sphere), cudaMemcpyHostToDevice);
+
+  ObjectWrapper sphereWrapper2;
+
+  sphereWrapper2.obj = dev_sphere2;
+  sphereWrapper2.type = ObjectType::SPHERE;
+
+  objects.push_back(sphereWrapper2);
+  objects.push_back(sphereWrapper1);
 }
 
 void destroy()
 {
-   cudaFree(dev_sphere);
+
+  while (objects.size() == 0)
+  {
+    ObjectWrapper obj = objects.back();
+    cudaFree(obj.obj);
+    objects.pop_back();
+  }
 }
 
 int main(int argc, char *argv[])
