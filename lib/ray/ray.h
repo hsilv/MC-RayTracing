@@ -6,8 +6,9 @@
 #include <cuda_runtime.h>
 #include "object.h"
 #include <vector>
+#include "light.h"
 
-__device__ Color castRay(const glm::vec3 &origin, const glm::vec3 &direction, ObjectWrapper *objects, int numObjects)
+__device__ Color castRay(const glm::vec3 &origin, const glm::vec3 &direction, ObjectWrapper *objects, int numObjects, Light *lights, int numLights)
 {
     float zBuffer = INFINITY;
     Object *hitObject = nullptr;
@@ -24,13 +25,25 @@ __device__ Color castRay(const glm::vec3 &origin, const glm::vec3 &direction, Ob
         }
     }
 
-    if(!globalIntersect.intersected){
+    if (!globalIntersect.intersected)
+    {
         return Color(173, 216, 230);
     }
-    
-    Material mat = hitObject->material;
-    Color diffuseLight = mat.diffuse;
-    Color color = diffuseLight;
+
+    Color color;
+
+    if(numLights > 0){
+        Light light = lights[0];
+        glm::vec3 lightDir = glm::normalize(light.position - globalIntersect.point);
+        float diffuseLightIntensity = glm::dot(lightDir, globalIntersect.normal);
+        diffuseLightIntensity = glm::max(diffuseLightIntensity, 0.0f);
+        Material mat = hitObject->material;
+        Color diffuseLight = mat.diffuse * light.intensity * diffuseLightIntensity;
+        color = diffuseLight;
+    } else {
+        color = hitObject->material.diffuse;
+    }
+
     return color;
 }
 

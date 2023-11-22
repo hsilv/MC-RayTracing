@@ -7,6 +7,8 @@ struct Intersect
 {
     bool intersected = false;
     float dist = 0.0f;
+    glm::vec3 point;
+    glm::vec3 normal;
 };
 
 

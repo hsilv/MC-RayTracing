@@ -61,9 +61,9 @@ public:
     __host__ __device__ Color operator*(float factor) const
     {
         return Color(
-            r * factor,
-            g * factor,
-            b * factor);
+            uint8_t((r / 255.0f) * factor * 255),
+            uint8_t((g / 255.0f) * factor * 255),
+            uint8_t((b / 255.0f) * factor * 255));
     }
 
     __host__ __device__ uint16_t toHex() const

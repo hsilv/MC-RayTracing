@@ -33,7 +33,9 @@ public:
             return Intersect{false};
         }
 
-        return Intersect{true, dist};
+        glm::vec3 point = origin + dist * direction;
+        glm::vec3 normal = glm::normalize(point - center);
+        return Intersect{true, dist, point, normal};
     };
 
 private:
