@@ -1,14 +1,21 @@
 cmake_minimum_required(VERSION 3.25)
-  project(MC-RayTracing VERSION 1.0)
+project(MC-RayTracing VERSION 1.0 LANGUAGES CXX CUDA)
 
-  find_package(SDL2 REQUIRED)
-  include_directories(${SDL2_INCLUDE_DIRS})
+find_package(SDL2 REQUIRED)
+include_directories(${SDL2_INCLUDE_DIRS})
 
-  add_executable(MC-RayTracing src/main.cpp)
-  target_link_libraries(MC-RayTracing ${SDL2_LIBRARIES})
+find_package(CUDA REQUIRED)
+include_directories(${CUDA_INCLUDE_DIRS})
 
-  file(GLOB_RECURSE LIB_HEADERS lib/*.h)
-  foreach(FILE ${LIB_HEADERS})
-      get_filename_component(DIR_PATH ${FILE} PATH)
-      include_directories(${DIR_PATH})
-  endforeach()
+file(GLOB_RECURSE LIB_HEADERS lib/*.h)
+foreach(FILE ${LIB_HEADERS})
+    get_filename_component(DIR_PATH ${FILE} PATH)
+    include_directories(${DIR_PATH})
+endforeach()
+
+file(GLOB_RECURSE SRC_FILES src/*.cpp src/*.cu)
+add_executable(MC-RayTracing ${SRC_FILES})
+target_link_libraries(MC-RayTracing ${SDL2_LIBRARIES} ${CUDA_LIBRARIES})
+
+set_property(TARGET MC-RayTracing 
+             PROPERTY CUDA_SEPARABLE_COMPILATION ON)
