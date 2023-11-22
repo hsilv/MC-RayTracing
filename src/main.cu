@@ -1,19 +1,43 @@
-#include "SDL.h"
 #include "color.h"
 #include "fps.h"
-#include <cuda_runtime.h>
 #include "SM.h"
+#include "framebufferConfig.h"
+#include <glm/glm.hpp>
 
 Color Background = {0, 0, 0};
+const float ASPECT_RATIO = static_cast<float>(SCREEN_WIDTH) / static_cast<float>(SCREEN_HEIGHT);
 
-__global__ void printHelloWorld()
+__global__ void render(Point *buffer)
 {
-  int index = threadIdx.x + 1;
-  printf("Hello World %d\n", index);
+  
+  int index = blockIdx.x * blockDim.x + threadIdx.x;
+  int x = index % SCREEN_WIDTH;
+  int y = index / SCREEN_WIDTH;
+
+  float screenX =  ((2.0f * x) / SCREEN_WIDTH) - 1.0f;
+  float screenY = -((2.0f * y) / SCREEN_HEIGHT) + 1.0f;
+
+  if(screenX > 1.0f || screenX < -1.0f){
+    printf("Me he pasado en X \n");
+    return;
+  }
+
+  if(screenY > 1.0f || screenY < -1.0f){
+    printf("Me he pasado en Y \n");
+    return;
+  }
+
+  Point p = {x, y, 0, Color((screenX + 1.0f) / 2.0f, 0.0f, (screenY + 1.0f) / 2.0f)};
+
+  buffer[index] = p;
+
 }
 
 int main(int argc, char *argv[])
 {
+
+  /*-------------------------CUDA CONFIGURATION----------------------------*/
+
   int deviceCount;
   int numCores;
   cudaGetDeviceCount(&deviceCount);
@@ -24,8 +48,8 @@ int main(int argc, char *argv[])
     cudaGetDeviceProperties(&deviceProp, 0);
     numCores = std::min(deviceProp.multiProcessorCount * _ConvertSMVer2Cores(deviceProp.major, deviceProp.minor), 1024);
   }
-  printHelloWorld<<<1, numCores>>>();
-  cudaDeviceSynchronize();
+
+  int numBlocks = (SCREEN_WIDTH * SCREEN_HEIGHT + numCores - 1) / numCores;
 
   /*-------------------------SDL CONFIGURATION----------------------------*/
 
@@ -35,8 +59,8 @@ int main(int argc, char *argv[])
       "SDL2Test",
       SDL_WINDOWPOS_UNDEFINED,
       SDL_WINDOWPOS_UNDEFINED,
-      640,
-      480,
+      SCREEN_WIDTH,
+      SCREEN_HEIGHT,
       0);
 
   SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
@@ -57,11 +81,19 @@ int main(int argc, char *argv[])
         running = false;
       }
     }
-    Background = Background + Color(2, 2, 2);
     SDL_SetRenderDrawColor(renderer, Background.getRed(), Background.getGreen(), Background.getBlue(), SDL_ALPHA_OPAQUE);
     SDL_RenderClear(renderer);
-    SDL_RenderPresent(renderer);
-    SDL_Delay(14);
+
+    initBuffer();
+
+    render<<<numBlocks, numCores>>>(dev_buffer);
+    cudaDeviceSynchronize();
+    cudaMemcpy(host_buffer, dev_buffer, SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(Point), cudaMemcpyDeviceToHost);
+
+    renderBuffer(renderer, host_buffer);
+
+    destroyBuffer();
+
     endFPS(window);
   }
 
