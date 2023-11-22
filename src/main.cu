@@ -13,6 +13,7 @@ const float ASPECT_RATIO = static_cast<float>(SCREEN_WIDTH) / static_cast<float>
 
 /* std::vector<Object> objects; */
 thrust::device_vector<ObjectWrapper> objects;
+std::vector<Material *> matPointers;
 
 __global__ void render(Point *buffer, ObjectWrapper *objects, int numObjects)
 {
@@ -21,8 +22,8 @@ __global__ void render(Point *buffer, ObjectWrapper *objects, int numObjects)
   int x = index % SCREEN_WIDTH;
   int y = index / SCREEN_WIDTH;
 
-  float screenX = ((2.0f * x) / SCREEN_WIDTH) - 1.0f;
-  float screenY = -((2.0f * y) / SCREEN_HEIGHT) + 1.0f;
+  float screenX = ((2.0f * (x + 0.5f)) / SCREEN_WIDTH) - 1.0f;
+  float screenY = -((2.0f * (y + 0.5f)) / SCREEN_HEIGHT) + 1.0f;
   screenX *= ASPECT_RATIO;
   screenX *= tan(fov / 2.0f);
   screenY *= tan(fov / 2.0f);
@@ -36,9 +37,25 @@ __global__ void render(Point *buffer, ObjectWrapper *objects, int numObjects)
 
 void setUp()
 {
+
+  Material *dev_rubber;
+  cudaMalloc(&dev_rubber, sizeof(Material));
+  Material tempRubber = Material{Color(80, 0, 0)};
+  cudaMemcpy(dev_rubber, &tempRubber, sizeof(Material), cudaMemcpyHostToDevice);
+
+  matPointers.push_back(dev_rubber);
+
+  Material *dev_ivory;
+  cudaMalloc(&dev_ivory, sizeof(Material));
+  Material tempIvory = Material{Color(100, 100, 80)};
+  cudaMemcpy(dev_ivory, &tempIvory, sizeof(Material), cudaMemcpyHostToDevice);
+
+  matPointers.push_back(dev_ivory);
+
+
   Sphere *dev_sphere;
   cudaMalloc(&dev_sphere, sizeof(Sphere));
-  Sphere tempSphere = Sphere(glm::vec3(0.0f, 0.0f, -5.0f), 1.0f);
+  Sphere tempSphere = Sphere(glm::vec3(0.0f, 0.0f, -5.0f), 1.0f, tempRubber);
   cudaMemcpy(dev_sphere, &tempSphere, sizeof(Sphere), cudaMemcpyHostToDevice);
 
   ObjectWrapper sphereWrapper1;
@@ -49,7 +66,7 @@ void setUp()
 
   Sphere *dev_sphere2;
   cudaMalloc(&dev_sphere2, sizeof(Sphere));
-  Sphere tempSphere2 = Sphere(glm::vec3(-1.0f, 0.0f, -3.5f), 1.0f);
+  Sphere tempSphere2 = Sphere(glm::vec3(-1.0f, 0.0f, -3.5f), 1.0f, tempIvory);
   cudaMemcpy(dev_sphere2, &tempSphere2, sizeof(Sphere), cudaMemcpyHostToDevice);
 
   ObjectWrapper sphereWrapper2;
@@ -69,6 +86,12 @@ void destroy()
     ObjectWrapper obj = objects.back();
     cudaFree(obj.obj);
     objects.pop_back();
+  }
+
+  while(matPointers.size() == 0){
+    Material *mat = matPointers.back();
+    cudaFree(mat);
+    matPointers.pop_back();
   }
 }
 

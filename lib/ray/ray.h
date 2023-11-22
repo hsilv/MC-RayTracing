@@ -13,7 +13,10 @@ __device__ Color castRay(const glm::vec3 &origin, const glm::vec3 &direction, Ob
     {
         if (objects[i].rayIntersect(origin, direction))
         {
-            return Color{255, 237, 151};
+            Material mat = objects[i].obj->material;
+            Color diffuseLight = mat.diffuse;
+            Color color = diffuseLight;
+            return color;
         }
     }
 

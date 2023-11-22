@@ -4,13 +4,16 @@
 #include <glm/glm.hpp>
 #include <cuda_runtime.h>
 #include <iostream>
+#include "material.h"
 
 /* class Sphere; */
 
 class Object
 {
 public:
+    Object(const Material& material) : material(material) {}
     __device__ bool rayIntersect(const glm::vec3 &origin, const glm::vec3 &direction);
+    Material material;
 };
 
 enum ObjectType
@@ -38,6 +41,5 @@ struct ObjectWrapper
         }
     }
 };
-
 
 #endif
