@@ -74,8 +74,8 @@ void setUp()
   sphereWrapper2.obj = dev_sphere2;
   sphereWrapper2.type = ObjectType::SPHERE;
 
-  objects.push_back(sphereWrapper2);
   objects.push_back(sphereWrapper1);
+  objects.push_back(sphereWrapper2);
 }
 
 void destroy()

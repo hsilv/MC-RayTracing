@@ -3,9 +3,10 @@
 
 #include <glm/glm.hpp>
 
-struct intersect
+struct Intersect
 {
-    
+    bool intersected = false;
+    float dist = 0.0f;
 };
 
 

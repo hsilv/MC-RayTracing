@@ -5,6 +5,7 @@
 #include <cuda_runtime.h>
 #include <iostream>
 #include "material.h"
+#include "intersect.h"
 
 /* class Sphere; */
 
@@ -12,7 +13,7 @@ class Object
 {
 public:
     Object(const Material& material) : material(material) {}
-    __device__ bool rayIntersect(const glm::vec3 &origin, const glm::vec3 &direction);
+    __device__ Intersect rayIntersect(const glm::vec3 &origin, const glm::vec3 &direction);
     Material material;
 };
 
@@ -30,14 +31,13 @@ struct ObjectWrapper
     Object *obj;
     ObjectType type;
 
-    __device__ bool rayIntersect(const glm::vec3 &origin, const glm::vec3 &direction) const
+    __device__ Intersect rayIntersect(const glm::vec3 &origin, const glm::vec3 &direction) const
     {
         switch (type)
         {
         case SPHERE:
             Sphere *sph = static_cast<Sphere *>(obj);
             return sph->rayIntersect(origin, direction);
-
         }
     }
 };

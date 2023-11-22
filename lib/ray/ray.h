@@ -7,20 +7,31 @@
 #include "object.h"
 #include <vector>
 
-__device__ Color castRay(const glm::vec3 &origin, const glm::vec3 &direction, ObjectWrapper* objects, int numObjects)
+__device__ Color castRay(const glm::vec3 &origin, const glm::vec3 &direction, ObjectWrapper *objects, int numObjects)
 {
+    float zBuffer = INFINITY;
+    Object *hitObject = nullptr;
+    Intersect globalIntersect;
+
     for (int i = 0; i < numObjects; i++)
     {
-        if (objects[i].rayIntersect(origin, direction))
+        Intersect intersect = objects[i].rayIntersect(origin, direction);
+        if (intersect.intersected && intersect.dist < zBuffer)
         {
-            Material mat = objects[i].obj->material;
-            Color diffuseLight = mat.diffuse;
-            Color color = diffuseLight;
-            return color;
+            zBuffer = intersect.dist;
+            hitObject = objects[i].obj;
+            globalIntersect = intersect;
         }
     }
 
-    return Color{173, 216, 230};
+    if(!globalIntersect.intersected){
+        return Color(173, 216, 230);
+    }
+    
+    Material mat = hitObject->material;
+    Color diffuseLight = mat.diffuse;
+    Color color = diffuseLight;
+    return color;
 }
 
 #endif
