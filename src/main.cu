@@ -3,13 +3,20 @@
 #include "SM.h"
 #include "framebufferConfig.h"
 #include <glm/glm.hpp>
+#include "ray.h"
+#include "object.h"
+#include <vector>
+#include <thrust/device_vector.h>
 
 Color Background = {0, 0, 0};
 const float ASPECT_RATIO = static_cast<float>(SCREEN_WIDTH) / static_cast<float>(SCREEN_HEIGHT);
 
-__global__ void render(Point *buffer)
+/* std::vector<Object> objects; */
+thrust::device_vector<Object> objects;
+
+__global__ void render(Point *buffer, Object* objects, int numObjects)
 {
-  
+
   int index = blockIdx.x * blockDim.x + threadIdx.x;
   int x = index % SCREEN_WIDTH;
   int y = index / SCREEN_WIDTH;
@@ -18,16 +25,16 @@ __global__ void render(Point *buffer)
   float screenY = -((2.0f * y) / SCREEN_HEIGHT) + 1.0f;
 
   if(screenX > 1.0f || screenX < -1.0f){
-    printf("Me he pasado en X \n");
     return;
   }
 
   if(screenY > 1.0f || screenY < -1.0f){
-    printf("Me he pasado en Y \n");
     return;
   }
 
-  Point p = {x, y, 0, Color((screenX + 1.0f) / 2.0f, 0.0f, (screenY + 1.0f) / 2.0f)};
+  glm::vec3 rayDirection = glm::normalize(glm::vec3(screenX, screenY, -1.0f));
+  Color pixelColor = castRay(glm::vec3(0.0f, 0.0f, 0.0f), rayDirection, objects, numObjects);
+  Point p = {x, y, 0, pixelColor};
 
   buffer[index] = p;
 
@@ -86,7 +93,9 @@ int main(int argc, char *argv[])
 
     initBuffer();
 
-    render<<<numBlocks, numCores>>>(dev_buffer);
+    Object* raw_ptr = thrust::raw_pointer_cast(objects.data());
+
+    render<<<numBlocks, numCores>>>(dev_buffer, raw_ptr, objects.size());
     cudaDeviceSynchronize();
     cudaMemcpy(host_buffer, dev_buffer, SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(Point), cudaMemcpyDeviceToHost);
 
