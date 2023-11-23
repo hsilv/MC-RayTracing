@@ -13,6 +13,7 @@ std::vector<Light *> lightPointers;
 thrust::device_vector<ObjectWrapper> objects;
 std::vector<Material *> matPointers;
 std::vector<Texture *> texturePointers;
+std::vector<Color *> colorPointers;
 
 void addSphere(glm::vec3 center, float radius, Material mat)
 {
@@ -63,29 +64,53 @@ void addLight(Light light)
     lightPointers.push_back(dev_light);
 }
 
-Texture surfaceToColor(SDL_Surface *surface)
+/* void addColors(Color *colors){
+    Color *dev_colors;
+    cudaMalloc(&dev_colors, sizeof(Color) * 100);
+    cudaMemcpy(dev_colors, colors, sizeof(Color) * 100, cudaMemcpyHostToDevice);
+
+    colorPointers.push_back(dev_colors);
+} */
+
+void colorsToBMP(Color *colors, int width, int height)
 {
-    int width = surface->w;
-    int height = surface->h;
-    Color *colors = new Color[width * height];
+    SDL_Surface *surface = SDL_CreateRGBSurface(0, width, height, 32, 0x00FF0000, 0x0000FF00, 0x000000FF, 0);
+
+    if (surface == NULL)
+    {
+        printf("Could not create surface: %s\n", SDL_GetError());
+        return;
+    }
 
     SDL_LockSurface(surface);
     Uint32 *pixels = (Uint32 *)surface->pixels;
 
     for (int i = 0; i < width * height; i++)
     {
-        Uint8 r, g, b;
-        SDL_GetRGB(pixels[i], surface->format, &r, &g, &b);
-        colors[i] = Color(r, g, b);
+        pixels[i] = SDL_MapRGB(surface->format, colors[i].getRed(), colors[i].getGreen(), colors[i].getBlue());
     }
 
     SDL_UnlockSurface(surface);
 
-    return Texture{colors, width, height};
+    if (SDL_SaveBMP(surface, "colors.bmp") != 0)
+    {
+        printf("Could not save BMP: %s\n", SDL_GetError());
+    }
+
+    SDL_FreeSurface(surface);
 }
 
 void addTexture(Texture *texture)
 {
+    // Allocate memory for the colors array on the GPU
+    Color *dev_colors;
+    cudaMalloc(&dev_colors, texture->width * texture->height * sizeof(Color));
+    cudaMemcpy(dev_colors, texture->colors, texture->width * texture->height * sizeof(Color), cudaMemcpyHostToDevice);
+
+    // Update the colors pointer of the texture on the host to point to the new array
+    texture->colors = dev_colors;
+
+    // Allocate memory for the texture on the GPU
     Texture *dev_texture;
     cudaMalloc(&dev_texture, sizeof(Texture));
     cudaMemcpy(dev_texture, texture, sizeof(Texture), cudaMemcpyHostToDevice);
@@ -95,25 +120,24 @@ void addTexture(Texture *texture)
 
 void setUp(SDL_Renderer *ren)
 {
-
-    SDL_Surface *Swood = loadTexture("./src/wood.jpg");
-    SDL_Surface *SchWood = loadTexture("./src/choppedWood.webp");
-
-    Texture wood = surfaceToColor(Swood);
+    initImageLoader();
+    loadImage("wood", "./src/wood.bmp");
+    Texture wood = getTexture("wood");
+    addTexture(&wood);
 
     Light light{glm::vec3(5.0f, -5.0f, 10.0f), 1.5f, Color(255, 255, 255)};
     addLight(light);
 
-    Material tempRubber = Material{Color(100, 100, 80), 0.9f, 0.1f, 10.0f};
+    Material tempRubber = Material{Color(100, 100, 80), 0.9f, 0.1f, 10.0f, false};
     addMaterial(tempRubber);
 
-    Material tempIvory = Material{Color(80, 0, 0), 0.6f, 0.4f, 50.0f};
+    Material tempIvory = Material{Color(80, 0, 0), 0.6f, 0.4f, 50.0f, false};
     addMaterial(tempIvory);
 
-    Material oakWood = Material{Color(100, 80, 0), 0.6f, 0.4f, 50.0f, wood};
+    Material oakWood = Material{Color(100, 80, 0), 0.6f, 0.4f, 50.0f, true, wood};
     addMaterial(oakWood);
 
-    addSphere(glm::vec3(1.0f, 0.0f, -5.0f), 1.0f, tempRubber);
+    addSphere(glm::vec3(1.0f, 0.0f, -5.0f), 1.0f, oakWood);
 
     addCube(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.5f, 0.5f), oakWood);
     addCube(glm::vec3(0.0f, 0.5f, 0.0f), glm::vec3(1.0f, 0.5f, 0.5f), oakWood);

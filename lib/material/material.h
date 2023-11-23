@@ -5,7 +5,7 @@
 #include "SDL.h"
 
 struct Texture{
-    Color* texture;
+    Color* colors;
     int width;
     int height;
 };
@@ -15,6 +15,7 @@ struct Material {
     float albedo;
     float specularAlbedo;
     float specularCoefficient;
+    bool hasText;
     Texture texture;
 };
 

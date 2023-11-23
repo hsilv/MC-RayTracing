@@ -8,6 +8,19 @@
 #include <vector>
 #include "light.h"
 
+__device__ Color getTextureColor(const glm::vec2 &texCoords, const Texture &texture)
+{
+
+    int x = texCoords.x * texture.width;
+    int y = texCoords.y * texture.height;
+
+    x = x % texture.width;
+    y = y % texture.height;
+    // Get the color from the texture
+    Color color = texture.colors[y * texture.width + x];
+    return color;
+}
+
 __device__ Color castRay(const glm::vec3 &origin, const glm::vec3 &direction, ObjectWrapper *objects, int numObjects, Light *lights, int numLights)
 {
     float zBuffer = INFINITY;
@@ -62,7 +75,15 @@ __device__ Color castRay(const glm::vec3 &origin, const glm::vec3 &direction, Ob
                 break;
             }
         }
-        Color diffuseLight = mat.diffuse * light.intensity * diffuseLightIntensity * mat.albedo;
+
+        // Texture mapping
+        Color diffuseColor = mat.diffuse;
+        if (mat.hasText)
+        {
+            diffuseColor = getTextureColor(globalIntersect.texCoords, mat.texture);
+        }
+
+        Color diffuseLight = diffuseColor * light.intensity * diffuseLightIntensity * mat.albedo;
         Color specularLight = light.color * light.intensity * specularLightIntensity * mat.specularAlbedo;
         color = diffuseLight + specularLight;
 

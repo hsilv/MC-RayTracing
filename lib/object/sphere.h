@@ -35,7 +35,13 @@ public:
 
         glm::vec3 point = origin + dist * direction;
         glm::vec3 normal = glm::normalize(point - center);
-        return Intersect{true, dist, point, normal};
+
+        // Calculate texture coordinates
+        glm::vec2 texCoords;
+        texCoords.x = 0.5f + atan2(normal.z, normal.x) / (2.0f * M_PI);
+        texCoords.y = 0.5f - asin(normal.y) / M_PI;
+
+        return Intersect{true, dist, point, normal, texCoords};
     };
 
 private:

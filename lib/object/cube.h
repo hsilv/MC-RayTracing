@@ -34,33 +34,40 @@ public:
 
         glm::vec3 point = origin + t0 * direction;
         glm::vec3 normal;
+        glm::vec2 texCoords;
 
         if (t0 == realMin.x)
         {
             normal = glm::vec3(1, 0, 0);
+            texCoords = glm::vec2((point.y - min.y) / dimensions.y, (point.z - min.z) / dimensions.z);
         }
         else if (t0 == realMin.y)
         {
             normal = glm::vec3(0, 1, 0);
+            texCoords = glm::vec2((point.x - min.x) / dimensions.x, (point.z - min.z) / dimensions.z);
         }
         else if (t0 == realMin.z)
         {
             normal = glm::vec3(0, 0, 1);
+            texCoords = glm::vec2((point.x - min.x) / dimensions.x, (point.y - min.y) / dimensions.y);
         }
         else if (t0 == realMax.x)
         {
             normal = glm::vec3(-1, 0, 0);
+            texCoords = glm::vec2((point.y - min.y) / dimensions.y, (point.z - min.z) / dimensions.z);
         }
         else if (t0 == realMax.y)
         {
             normal = glm::vec3(0, -1, 0);
+            texCoords = glm::vec2((point.x - min.x) / dimensions.x, (point.z - min.z) / dimensions.z);
         }
         else if (t0 == realMax.z)
         {
             normal = glm::vec3(0, 0, -1);
+            texCoords = glm::vec2((point.x - min.x) / dimensions.x, (point.y - min.y) / dimensions.y);
         }
 
-        return Intersect{true, t0, point, normal};
+        return Intersect{true, t0, point, normal, texCoords};
     };
 
 private:
