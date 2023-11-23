@@ -65,6 +65,12 @@ void destroy()
     cudaFree(light);
     lightPointers.pop_back();
   }
+
+  while(texturePointers.size() == 0){
+    Texture *tex = texturePointers.back();
+    cudaFree(tex);
+    texturePointers.pop_back();
+  }
 }
 
 int main(int argc, char *argv[])
