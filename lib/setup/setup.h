@@ -64,14 +64,6 @@ void addLight(Light light)
     lightPointers.push_back(dev_light);
 }
 
-/* void addColors(Color *colors){
-    Color *dev_colors;
-    cudaMalloc(&dev_colors, sizeof(Color) * 100);
-    cudaMemcpy(dev_colors, colors, sizeof(Color) * 100, cudaMemcpyHostToDevice);
-
-    colorPointers.push_back(dev_colors);
-} */
-
 void colorsToBMP(Color *colors, int width, int height)
 {
     SDL_Surface *surface = SDL_CreateRGBSurface(0, width, height, 32, 0x00FF0000, 0x0000FF00, 0x000000FF, 0);
@@ -118,15 +110,59 @@ void addTexture(Texture *texture)
     texturePointers.push_back(dev_texture);
 };
 
+void addStair(glm::vec3 center, glm::vec3 size, int orientation, Material mat)
+{
+    glm::vec3 stepSize;
+    glm::vec3 firstStepCenter;
+    glm::vec3 secondStepCenter;
+    glm::vec3 thirdStepCenter;
+    if (orientation == 0)
+    {
+        stepSize = {size.x, size.y / 2.0f, size.z / 2.0f};
+        firstStepCenter = {center.x, center.y + (stepSize.y) / 2.0f, center.z + (stepSize.z) / 2.0f};
+        secondStepCenter = {center.x, center.y - (stepSize.y) / 2.0f, center.z - (stepSize.z) / 2.0f};
+        thirdStepCenter = {center.x, center.y + (stepSize.y) / 2.0f, center.z - (stepSize.z) / 2.0f};
+    }
+    else if (orientation == 1)
+    {
+        stepSize = {size.x, size.y / 2.0f, size.z / 2.0f};
+        firstStepCenter = {center.x, center.y - (stepSize.y) / 2.0f, center.z + (stepSize.z) / 2.0f};
+        secondStepCenter = {center.x, center.y - (stepSize.y) / 2.0f, center.z - (stepSize.z) / 2.0f};
+        thirdStepCenter = {center.x, center.y + (stepSize.y) / 2.0f, center.z - (stepSize.z) / 2.0f};
+    }
+    else if (orientation == 2)
+    {
+        stepSize = {size.x, size.y / 2.0f, size.z / 2.0f};
+        firstStepCenter = {center.x, center.y - (stepSize.y) / 2.0f, center.z + (stepSize.z) / 2.0f};
+        secondStepCenter = {center.x, center.y - (stepSize.y) / 2.0f, center.z - (stepSize.z) / 2.0f};
+        thirdStepCenter = {center.x, center.y + (stepSize.y) / 2.0f, center.z + (stepSize.z) / 2.0f};
+    }
+    addCube(firstStepCenter, stepSize, mat);
+    addCube(secondStepCenter, stepSize, mat);
+    addCube(thirdStepCenter, stepSize, mat);
+}
+
 void setUp(SDL_Renderer *ren)
 {
     initImageLoader();
     loadImage("wood", "./src/wood.bmp");
+    loadImage("log", "./src/wood.jpg");
+    loadImage("cobblestone", "./src/cobblestone.jpg");
+
+    Texture log = getTexture("log");
+    addTexture(&log);
+
     Texture wood = getTexture("wood");
     addTexture(&wood);
 
-    Light light{glm::vec3(5.0f, -5.0f, 10.0f), 1.5f, Color(255, 255, 255)};
+    Texture cobblestone = getTexture("cobblestone");
+    addTexture(&cobblestone);
+
+    Light light{glm::vec3(-5.0f, -5.0f, 10.0f), 1.5f, Color(255, 255, 255)};
     addLight(light);
+
+    Light light2{glm::vec3(0.0f, -5.0f, -5.0f), 1.5f, Color(255, 128, 0)};
+    addLight(light2);
 
     Material tempRubber = Material{Color(100, 100, 80), 0.9f, 0.1f, 10.0f, false};
     addMaterial(tempRubber);
@@ -137,11 +173,48 @@ void setUp(SDL_Renderer *ren)
     Material oakWood = Material{Color(100, 80, 0), 0.6f, 0.4f, 50.0f, true, wood};
     addMaterial(oakWood);
 
-    addSphere(glm::vec3(1.0f, 0.0f, -5.0f), 1.0f, oakWood);
+    Material logMat = Material{Color(100, 80, 0), 0.6f, 0.4f, 50.0f,true, log};
+    addMaterial(logMat);
 
-    addCube(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.5f, 0.5f), oakWood);
-    addCube(glm::vec3(0.0f, 0.5f, 0.0f), glm::vec3(1.0f, 0.5f, 0.5f), oakWood);
-    addCube(glm::vec3(0.0f, 0.0f, 0.5f), glm::vec3(1.0f, 0.5f, 0.5f), oakWood);
+    Material cobblestoneMat = Material{Color(100, 80, 0), 0.6f, 0.4f, 50.0f, true, cobblestone};
+    addMaterial(cobblestoneMat);
+
+    addStair(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), 0, oakWood);
+    addStair(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), 0, oakWood);
+    addStair(glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), 0, oakWood);
+    addStair(glm::vec3(-2.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), 0, oakWood);
+    addStair(glm::vec3(2.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), 0, oakWood);
+    addStair(glm::vec3(3.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), 0, oakWood);
+    addStair(glm::vec3(3.0f, 0.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), 2, oakWood);
+    addStair(glm::vec3(-3.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), 0, oakWood);
+    addStair(glm::vec3(-3.0f, 0.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), 2, oakWood);
+
+    addStair(glm::vec3(3.0f, -1.0f, -2.0f), glm::vec3(1.0f, 1.0f, 1.0f), 2, oakWood);
+    addStair(glm::vec3(3.0f, -1.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), 0, oakWood);
+
+    addCube(glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), logMat);
+    addCube(glm::vec3(1.0f, 0.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), logMat);
+    addCube(glm::vec3(2.0f, 0.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), logMat);
+    addCube(glm::vec3(-1.0f, 0.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), logMat);
+    addCube(glm::vec3(-2.0f, 0.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), logMat);
+
+    addCube(glm::vec3(1.0f, 1.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), logMat);
+    addCube(glm::vec3(-1.0f, 1.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), logMat);
+    addCube(glm::vec3(2.0f, 1.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), logMat);
+    addCube(glm::vec3(-2.0f, 1.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), logMat);
+    addCube(glm::vec3(2.0f, 2.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), logMat);
+    addCube(glm::vec3(-2.0f, 2.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), logMat);
+    addCube(glm::vec3(2.0f, 3.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), logMat);
+    addCube(glm::vec3(-2.0f, 3.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), logMat);
+    addCube(glm::vec3(-1.0f, 3.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), cobblestoneMat);
+    addCube(glm::vec3(1.0f, 3.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), cobblestoneMat);
+    addCube(glm::vec3(0.0f, 3.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), cobblestoneMat);
+    addCube(glm::vec3(-1.0f, 2.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), cobblestoneMat);
+    addCube(glm::vec3(1.0f, 2.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), cobblestoneMat);
+    addCube(glm::vec3(0.0f, 2.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), cobblestoneMat);
+
+    addSphere(glm::vec3(0.0f, 0.0f, -1.0f), 0.5f, tempRubber);
+
 }
 
 #endif

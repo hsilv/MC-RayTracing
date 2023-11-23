@@ -18,57 +18,77 @@ public:
 
     __device__ Intersect rayIntersect(const glm::vec3 &origin, const glm::vec3 &direction)
     {
-        glm::vec3 tMin = (min - origin) / direction;
-        glm::vec3 tMax = (max - origin) / direction;
+        float tnear = -INFINITY;
+        float tfar = INFINITY;
+        glm::vec3 normal;
 
-        glm::vec3 realMin = glm::min(tMin, tMax);
-        glm::vec3 realMax = glm::max(tMin, tMax);
-
-        float t0 = glm::max(realMin.x, glm::max(realMin.y, realMin.z));
-        float t1 = glm::min(realMax.x, glm::min(realMax.y, realMax.z));
-
-        if (t0 > t1 || t1 < 0)
+        for (int i = 0; i < 3; ++i)
         {
-            return Intersect{false};
+            if (direction[i] == 0.0f)
+            {
+                if (origin[i] < min[i] || origin[i] > max[i])
+                {
+                    return Intersect{false, 0, glm::vec3(0), glm::vec3(0), glm::vec2(0)};
+                }
+            }
+            else
+            {
+                float t1 = (min[i] - origin[i]) / direction[i];
+                float t2 = (max[i] - origin[i]) / direction[i];
+
+                if (t1 > t2)
+                {
+                    float temp = t1;
+                    t1 = t2;
+                    t2 = temp;
+                }
+
+                if (t1 > tnear)
+                {
+                    tnear = t1;
+                    normal = glm::vec3(0);
+                    normal[i] = (t1 == (min[i] - origin[i]) / direction[i]) ? -1 : 1;
+                }
+
+                if (t2 < tfar)
+                {
+                    tfar = t2;
+                }
+
+                if (tnear > tfar || tfar < 0)
+                {
+                    return Intersect{false, 0, glm::vec3(0), glm::vec3(0), glm::vec2(0)};
+                }
+            }
         }
 
-        glm::vec3 point = origin + t0 * direction;
-        glm::vec3 normal;
+        glm::vec3 point = origin + tnear * direction;
+        glm::vec3 localPoint = point - min;
         glm::vec2 texCoords;
 
-        if (t0 == realMin.x)
+        if (normal.x != 0)
         {
-            normal = glm::vec3(1, 0, 0);
-            texCoords = glm::vec2((point.y - min.y) / dimensions.y, (point.z - min.z) / dimensions.z);
+            texCoords.x = localPoint.z / dimensions.z;
+            texCoords.y = localPoint.y / dimensions.y;
         }
-        else if (t0 == realMin.y)
+        else if (normal.y != 0)
         {
-            normal = glm::vec3(0, 1, 0);
-            texCoords = glm::vec2((point.x - min.x) / dimensions.x, (point.z - min.z) / dimensions.z);
+            texCoords.x = localPoint.x / dimensions.x;
+            texCoords.y = localPoint.z / dimensions.z;
         }
-        else if (t0 == realMin.z)
+        else if (normal.z != 0)
         {
-            normal = glm::vec3(0, 0, 1);
-            texCoords = glm::vec2((point.x - min.x) / dimensions.x, (point.y - min.y) / dimensions.y);
-        }
-        else if (t0 == realMax.x)
-        {
-            normal = glm::vec3(-1, 0, 0);
-            texCoords = glm::vec2((point.y - min.y) / dimensions.y, (point.z - min.z) / dimensions.z);
-        }
-        else if (t0 == realMax.y)
-        {
-            normal = glm::vec3(0, -1, 0);
-            texCoords = glm::vec2((point.x - min.x) / dimensions.x, (point.z - min.z) / dimensions.z);
-        }
-        else if (t0 == realMax.z)
-        {
-            normal = glm::vec3(0, 0, -1);
-            texCoords = glm::vec2((point.x - min.x) / dimensions.x, (point.y - min.y) / dimensions.y);
+            texCoords.x = localPoint.x / dimensions.x;
+            texCoords.y = localPoint.y / dimensions.y;
         }
 
-        return Intersect{true, t0, point, normal, texCoords};
-    };
+        if (normal.x < 0 || normal.y < 0 || normal.z < 0)
+        {
+            texCoords = glm::vec2(1.0f) - texCoords;
+        }
+
+        return Intersect{true, tnear, point, normal, texCoords};
+    }
 
 private:
     glm::vec3 center;

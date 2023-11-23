@@ -11,6 +11,14 @@
 #include "random.h"
 #include "setup.h"
 
+#define cudaCheckError() { \
+    cudaError_t e=cudaGetLastError(); \
+    if(e!=cudaSuccess) { \
+        printf("Cuda failure %s:%d: '%s'\n",__FILE__,__LINE__,cudaGetErrorString(e)); \
+        exit(EXIT_FAILURE); \
+    } \
+}
+
 Color Background = {0, 0, 0};
 const float ASPECT_RATIO = static_cast<float>(SCREEN_WIDTH) / static_cast<float>(SCREEN_HEIGHT);
 
@@ -178,7 +186,9 @@ int main(int argc, char *argv[])
     Light *raw_lights = thrust::raw_pointer_cast(lights.data());
 
     render<<<numBlocks, numCores>>>(dev_buffer, raw_ptr, objects.size(), raw_lights, lightPointers.size(), camera);
+    cudaCheckError();
     cudaDeviceSynchronize();
+    cudaCheckError();
     cudaMemcpy(host_buffer, dev_buffer, SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(Point), cudaMemcpyDeviceToHost);
 
     renderBuffer(renderer, host_buffer);
