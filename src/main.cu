@@ -1,4 +1,3 @@
-#include "color.h"
 #include "fps.h"
 #include "SM.h"
 #include "framebufferConfig.h"
@@ -7,7 +6,6 @@
 #include "object.h"
 #include <vector>
 #include <thrust/device_vector.h>
-#include "light.h"
 #include "camera.h"
 
 Color Background = {0, 0, 0};
@@ -50,7 +48,7 @@ void setUp()
 
   Light *dev_light;
   cudaMalloc(&dev_light, sizeof(Light));
-  Light light{glm::vec3(40.0f, 40.0f, 0.0f), 1.5f};
+  Light light{glm::vec3(40.0f, 40.0f, 0.0f), 1.5f, Color(255, 255, 255)};
   cudaMemcpy(dev_light, &light, sizeof(Light), cudaMemcpyHostToDevice);
 
   lights.push_back(light);
@@ -58,14 +56,14 @@ void setUp()
 
   Material *dev_rubber;
   cudaMalloc(&dev_rubber, sizeof(Material));
-  Material tempRubber = Material{Color(80, 0, 0)};
+  Material tempRubber = Material{Color(100, 100, 80), 0.9f, 0.9f, 10.0f};
   cudaMemcpy(dev_rubber, &tempRubber, sizeof(Material), cudaMemcpyHostToDevice);
 
   matPointers.push_back(dev_rubber);
 
   Material *dev_ivory;
   cudaMalloc(&dev_ivory, sizeof(Material));
-  Material tempIvory = Material{Color(100, 100, 80)};
+  Material tempIvory = Material{Color(80, 0, 0), 0.6f, 0.4f, 50.0f};
   cudaMemcpy(dev_ivory, &tempIvory, sizeof(Material), cudaMemcpyHostToDevice);
 
   matPointers.push_back(dev_ivory);
@@ -82,7 +80,7 @@ void setUp()
 
   Sphere *dev_sphere2;
   cudaMalloc(&dev_sphere2, sizeof(Sphere));
-  Sphere tempSphere2 = Sphere(glm::vec3(-1.0f, 0.0f, -3.5f), 1.0f, tempIvory);
+  Sphere tempSphere2 = Sphere(glm::vec3(0.0f, 0.0f, 0.0f), 1.0f, tempIvory);
   cudaMemcpy(dev_sphere2, &tempSphere2, sizeof(Sphere), cudaMemcpyHostToDevice);
 
   ObjectWrapper sphereWrapper2;
@@ -176,38 +174,38 @@ int main(int argc, char *argv[])
         case SDLK_UP:
           if (camera.position.z > 0.0f)
           {
-            camera.move(0.08f);
+            camera.move(0.08f * 2.0f);
           }
           else
           {
-            camera.move(-0.08f);
+            camera.move(-0.08f * 2.0f );
           }
           break;
         case SDLK_DOWN:
           if (camera.position.z > 0.0f)
           {
-            camera.move(-0.08f);
+            camera.move(-0.08f * 2.0f);
           }
           else
           {
-            camera.move(0.08f);
+            camera.move(0.08f * 2.0f );
           }
           break;
 
         case SDLK_w:
-          camera.rotate(0.08f, 0.0f);
+          camera.rotate(0.12f , 0.0f);
           break;
 
         case SDLK_s:
-          camera.rotate(-0.08f, 0.0f);
+          camera.rotate(-0.12f , 0.0f);
           break;
 
         case SDLK_a:
-          camera.rotate(0.0f, 0.08f);
+          camera.rotate(0.0f, 0.12f);
           break;
         
         case SDLK_d:
-          camera.rotate(0.0f, -0.08f);
+          camera.rotate(0.0f, -0.12f);
           break;
         }
       }

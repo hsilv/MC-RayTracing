@@ -32,15 +32,30 @@ __device__ Color castRay(const glm::vec3 &origin, const glm::vec3 &direction, Ob
 
     Color color;
 
-    if(numLights > 0){
+    if (numLights > 0)
+    {
         Light light = lights[0];
         glm::vec3 lightDir = glm::normalize(light.position - globalIntersect.point);
+        Material mat = hitObject->material;
+
+        glm::vec3 viewDirection = glm::normalize(origin - globalIntersect.point);
+        glm::vec3 reflectDirection = glm::reflect(-lightDir, globalIntersect.normal);
+
         float diffuseLightIntensity = glm::dot(lightDir, globalIntersect.normal);
         diffuseLightIntensity = glm::max(diffuseLightIntensity, 0.0f);
-        Material mat = hitObject->material;
-        Color diffuseLight = mat.diffuse * light.intensity * diffuseLightIntensity;
-        color = diffuseLight;
-    } else {
+
+        float specularLightIntensity = 0.0f;
+        if (diffuseLightIntensity > 0.0f) {
+            float specReflection = glm::dot(viewDirection, reflectDirection);
+            specularLightIntensity = pow(specReflection, mat.specularCoefficient);
+        }
+
+        Color diffuseLight = mat.diffuse * light.intensity * diffuseLightIntensity * mat.albedo;
+        Color specularLight = light.color * light.intensity * specularLightIntensity * mat.specularAlbedo;
+        color = diffuseLight + specularLight;
+    }
+    else
+    {
         color = hitObject->material.diffuse;
     }
 
