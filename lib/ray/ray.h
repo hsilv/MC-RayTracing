@@ -45,14 +45,31 @@ __device__ Color castRay(const glm::vec3 &origin, const glm::vec3 &direction, Ob
         diffuseLightIntensity = glm::max(diffuseLightIntensity, 0.0f);
 
         float specularLightIntensity = 0.0f;
-        if (diffuseLightIntensity > 0.0f) {
+        if (diffuseLightIntensity > 0.0f)
+        {
             float specReflection = glm::dot(viewDirection, reflectDirection);
             specularLightIntensity = pow(specReflection, mat.specularCoefficient);
         }
 
+        // Shadow check
+        bool inShadow = false;
+        for (int i = 0; i < numObjects; i++)
+        {
+            Intersect shadowIntersect = objects[i].rayIntersect(globalIntersect.point + 0.001f * lightDir, lightDir);
+            if (shadowIntersect.intersected)
+            {
+                inShadow = true;
+                break;
+            }
+        }
         Color diffuseLight = mat.diffuse * light.intensity * diffuseLightIntensity * mat.albedo;
         Color specularLight = light.color * light.intensity * specularLightIntensity * mat.specularAlbedo;
         color = diffuseLight + specularLight;
+
+        if (inShadow)
+        {
+            color = color * 0.2f;
+        }
     }
     else
     {

@@ -7,6 +7,7 @@
 #include <vector>
 #include <thrust/device_vector.h>
 #include "camera.h"
+#include "random.h"
 
 Color Background = {0, 0, 0};
 const float ASPECT_RATIO = static_cast<float>(SCREEN_WIDTH) / static_cast<float>(SCREEN_HEIGHT);
@@ -48,7 +49,7 @@ void setUp()
 
   Light *dev_light;
   cudaMalloc(&dev_light, sizeof(Light));
-  Light light{glm::vec3(40.0f, 40.0f, 0.0f), 1.5f, Color(255, 255, 255)};
+  Light light{glm::vec3(1.0f, 0.0f, 10.0f), 1.5f, Color(255, 255, 255)};
   cudaMemcpy(dev_light, &light, sizeof(Light), cudaMemcpyHostToDevice);
 
   lights.push_back(light);
@@ -70,7 +71,7 @@ void setUp()
 
   Sphere *dev_sphere;
   cudaMalloc(&dev_sphere, sizeof(Sphere));
-  Sphere tempSphere = Sphere(glm::vec3(0.0f, 0.0f, -5.0f), 1.0f, tempRubber);
+  Sphere tempSphere = Sphere(glm::vec3(1.0f, 0.0f, -5.0f), 1.0f, tempRubber);
   cudaMemcpy(dev_sphere, &tempSphere, sizeof(Sphere), cudaMemcpyHostToDevice);
 
   ObjectWrapper sphereWrapper1;
@@ -153,6 +154,9 @@ int main(int argc, char *argv[])
   bool running = true;
 
   setUp();
+
+  random_init<<<numBlocks, numCores>>>(1550);
+  cudaDeviceSynchronize();
 
   while (running)
   {
