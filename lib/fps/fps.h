@@ -9,7 +9,8 @@ uint32_t frameStart, frameTick;
 
 void startFPS()
 {
-    frameStart, frameTick = 0;
+    frameStart = 0;
+    frameTick = 0;
     frameStart = SDL_GetTicks();
 }
 

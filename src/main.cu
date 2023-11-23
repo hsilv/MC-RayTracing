@@ -8,6 +8,7 @@
 #include <vector>
 #include <thrust/device_vector.h>
 #include "light.h"
+#include "camera.h"
 
 Color Background = {0, 0, 0};
 const float ASPECT_RATIO = static_cast<float>(SCREEN_WIDTH) / static_cast<float>(SCREEN_HEIGHT);
@@ -17,8 +18,9 @@ std::vector<Light *> lightPointers;
 thrust::device_vector<ObjectWrapper> objects;
 std::vector<Material *> matPointers;
 
+Camera camera(glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), 10.0f);
 
-__global__ void render(Point *buffer, ObjectWrapper *objects, int numObjects, Light* lights, int numLights)
+__global__ void render(Point *buffer, ObjectWrapper *objects, int numObjects, Light *lights, int numLights, Camera camera)
 {
   float fov = FOV;
   int index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -31,8 +33,13 @@ __global__ void render(Point *buffer, ObjectWrapper *objects, int numObjects, Li
   screenX *= tan(fov / 2.0f);
   screenY *= tan(fov / 2.0f);
 
-  glm::vec3 rayDirection = glm::normalize(glm::vec3(screenX, screenY, -1.0f));
-  Color pixelColor = castRay(glm::vec3(0.0f, 0.0f, 0.0f), rayDirection, objects, numObjects, lights, numLights);
+  glm::vec3 cameraDirection = glm::normalize(camera.target - camera.position);
+
+  glm::vec3 cameraX = glm::normalize(glm::cross(cameraDirection, camera.up));
+  glm::vec3 cameraY = glm::normalize(glm::cross(cameraX, cameraDirection));
+  glm::vec3 rayDirection = glm::normalize(cameraX * screenX + cameraY * screenY + cameraDirection);
+
+  Color pixelColor = castRay(camera.position, rayDirection, objects, numObjects, lights, numLights);
   Point p = {x, y, 0, pixelColor};
 
   buffer[index] = p;
@@ -43,7 +50,7 @@ void setUp()
 
   Light *dev_light;
   cudaMalloc(&dev_light, sizeof(Light));
-  Light light{glm::vec3(-20.0f, -20.0f, 20.0f), 1.5f};
+  Light light{glm::vec3(40.0f, 40.0f, 0.0f), 1.5f};
   cudaMemcpy(dev_light, &light, sizeof(Light), cudaMemcpyHostToDevice);
 
   lights.push_back(light);
@@ -63,7 +70,6 @@ void setUp()
 
   matPointers.push_back(dev_ivory);
 
-
   Sphere *dev_sphere;
   cudaMalloc(&dev_sphere, sizeof(Sphere));
   Sphere tempSphere = Sphere(glm::vec3(0.0f, 0.0f, -5.0f), 1.0f, tempRubber);
@@ -73,7 +79,6 @@ void setUp()
 
   sphereWrapper1.obj = dev_sphere;
   sphereWrapper1.type = ObjectType::SPHERE;
-
 
   Sphere *dev_sphere2;
   cudaMalloc(&dev_sphere2, sizeof(Sphere));
@@ -99,13 +104,15 @@ void destroy()
     objects.pop_back();
   }
 
-  while(matPointers.size() == 0){
+  while (matPointers.size() == 0)
+  {
     Material *mat = matPointers.back();
     cudaFree(mat);
     matPointers.pop_back();
   }
 
-  while(lightPointers.size() == 0){
+  while (lightPointers.size() == 0)
+  {
     Light *light = lightPointers.back();
     cudaFree(light);
     lightPointers.pop_back();
@@ -161,6 +168,49 @@ int main(int argc, char *argv[])
       {
         running = false;
       }
+
+      if (event.type == SDL_KEYDOWN)
+      {
+        switch (event.key.keysym.sym)
+        {
+        case SDLK_UP:
+          if (camera.position.z > 0.0f)
+          {
+            camera.move(0.08f);
+          }
+          else
+          {
+            camera.move(-0.08f);
+          }
+          break;
+        case SDLK_DOWN:
+          if (camera.position.z > 0.0f)
+          {
+            camera.move(-0.08f);
+          }
+          else
+          {
+            camera.move(0.08f);
+          }
+          break;
+
+        case SDLK_w:
+          camera.rotate(0.08f, 0.0f);
+          break;
+
+        case SDLK_s:
+          camera.rotate(-0.08f, 0.0f);
+          break;
+
+        case SDLK_a:
+          camera.rotate(0.0f, 0.08f);
+          break;
+        
+        case SDLK_d:
+          camera.rotate(0.0f, -0.08f);
+          break;
+        }
+      }
     }
     SDL_SetRenderDrawColor(renderer, Background.getRed(), Background.getGreen(), Background.getBlue(), SDL_ALPHA_OPAQUE);
     SDL_RenderClear(renderer);
@@ -170,7 +220,7 @@ int main(int argc, char *argv[])
     ObjectWrapper *raw_ptr = thrust::raw_pointer_cast(objects.data());
     Light *raw_lights = thrust::raw_pointer_cast(lights.data());
 
-    render<<<numBlocks, numCores>>>(dev_buffer, raw_ptr, objects.size(), raw_lights, lightPointers.size());
+    render<<<numBlocks, numCores>>>(dev_buffer, raw_ptr, objects.size(), raw_lights, lightPointers.size(), camera);
     cudaDeviceSynchronize();
     cudaMemcpy(host_buffer, dev_buffer, SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(Point), cudaMemcpyDeviceToHost);
 
