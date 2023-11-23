@@ -1,6 +1,7 @@
 #ifndef COLOR_H
 #define COLOR_H
 #include <iostream>
+#include <cuda_runtime.h>
 
 class Color
 {

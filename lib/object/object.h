@@ -7,12 +7,10 @@
 #include "material.h"
 #include "intersect.h"
 
-/* class Sphere; */
-
 class Object
 {
 public:
-    Object(const Material& material) : material(material) {}
+    Object(const Material &material) : material(material) {}
     __device__ Intersect rayIntersect(const glm::vec3 &origin, const glm::vec3 &direction);
     Material material;
 };
@@ -20,11 +18,13 @@ public:
 enum ObjectType
 {
     SPHERE,
+    CUBE,
     // Otros tipos de objetos
 };
 
-//ASEGURARSE QUE LAS FIGURAS SE IMPORTEN LUEGO DE LA DECLARACIÓN DE OBJECT.
+// ASEGURARSE QUE LAS FIGURAS SE IMPORTEN LUEGO DE LA DECLARACIÓN DE OBJECT.
 #include "sphere.h"
+#include "cube.h"
 
 struct ObjectWrapper
 {
@@ -33,11 +33,17 @@ struct ObjectWrapper
 
     __device__ Intersect rayIntersect(const glm::vec3 &origin, const glm::vec3 &direction) const
     {
+        Sphere *sph = nullptr;
+        Cube *cub = nullptr;
+
         switch (type)
         {
         case SPHERE:
-            Sphere *sph = static_cast<Sphere *>(obj);
+            sph = static_cast<Sphere *>(obj);
             return sph->rayIntersect(origin, direction);
+        case CUBE:
+            cub = static_cast<Cube *>(obj);
+            return cub->rayIntersect(origin, direction);
         }
     }
 };

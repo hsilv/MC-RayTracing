@@ -1,3 +1,5 @@
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 #include "fps.h"
 #include "SM.h"
 #include "framebufferConfig.h"
@@ -5,17 +7,13 @@
 #include "ray.h"
 #include "object.h"
 #include <vector>
-#include <thrust/device_vector.h>
 #include "camera.h"
 #include "random.h"
+#include "setup.h"
 
 Color Background = {0, 0, 0};
 const float ASPECT_RATIO = static_cast<float>(SCREEN_WIDTH) / static_cast<float>(SCREEN_HEIGHT);
 
-thrust::device_vector<Light> lights;
-std::vector<Light *> lightPointers;
-thrust::device_vector<ObjectWrapper> objects;
-std::vector<Material *> matPointers;
 
 Camera camera(glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), 10.0f);
 
@@ -42,55 +40,6 @@ __global__ void render(Point *buffer, ObjectWrapper *objects, int numObjects, Li
   Point p = {x, y, 0, pixelColor};
 
   buffer[index] = p;
-}
-
-void setUp()
-{
-
-  Light *dev_light;
-  cudaMalloc(&dev_light, sizeof(Light));
-  Light light{glm::vec3(1.0f, 0.0f, 10.0f), 1.5f, Color(255, 255, 255)};
-  cudaMemcpy(dev_light, &light, sizeof(Light), cudaMemcpyHostToDevice);
-
-  lights.push_back(light);
-  lightPointers.push_back(dev_light);
-
-  Material *dev_rubber;
-  cudaMalloc(&dev_rubber, sizeof(Material));
-  Material tempRubber = Material{Color(100, 100, 80), 0.9f, 0.9f, 10.0f};
-  cudaMemcpy(dev_rubber, &tempRubber, sizeof(Material), cudaMemcpyHostToDevice);
-
-  matPointers.push_back(dev_rubber);
-
-  Material *dev_ivory;
-  cudaMalloc(&dev_ivory, sizeof(Material));
-  Material tempIvory = Material{Color(80, 0, 0), 0.6f, 0.4f, 50.0f};
-  cudaMemcpy(dev_ivory, &tempIvory, sizeof(Material), cudaMemcpyHostToDevice);
-
-  matPointers.push_back(dev_ivory);
-
-  Sphere *dev_sphere;
-  cudaMalloc(&dev_sphere, sizeof(Sphere));
-  Sphere tempSphere = Sphere(glm::vec3(1.0f, 0.0f, -5.0f), 1.0f, tempRubber);
-  cudaMemcpy(dev_sphere, &tempSphere, sizeof(Sphere), cudaMemcpyHostToDevice);
-
-  ObjectWrapper sphereWrapper1;
-
-  sphereWrapper1.obj = dev_sphere;
-  sphereWrapper1.type = ObjectType::SPHERE;
-
-  Sphere *dev_sphere2;
-  cudaMalloc(&dev_sphere2, sizeof(Sphere));
-  Sphere tempSphere2 = Sphere(glm::vec3(0.0f, 0.0f, 0.0f), 1.0f, tempIvory);
-  cudaMemcpy(dev_sphere2, &tempSphere2, sizeof(Sphere), cudaMemcpyHostToDevice);
-
-  ObjectWrapper sphereWrapper2;
-
-  sphereWrapper2.obj = dev_sphere2;
-  sphereWrapper2.type = ObjectType::SPHERE;
-
-  objects.push_back(sphereWrapper1);
-  objects.push_back(sphereWrapper2);
 }
 
 void destroy()
@@ -153,7 +102,7 @@ int main(int argc, char *argv[])
 
   bool running = true;
 
-  setUp();
+  setUp(renderer);
 
   random_init<<<numBlocks, numCores>>>(1550);
   cudaDeviceSynchronize();
