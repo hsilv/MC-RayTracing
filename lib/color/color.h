@@ -55,16 +55,40 @@ public:
 
     __host__ __device__ Color operator+(const Color &other) const
     {
-        return Color(r + other.r, g + other.g, b + other.b);
-    }
+        int newR = int(r) + int(other.r);
+        int newG = int(g) + int(other.g);
+        int newB = int(b) + int(other.b);
 
+        int maxColor = max(max(newR, newG), newB);
+
+        if (maxColor > 255)
+        {
+            float scale = 255.0f / maxColor;
+            newR = int(newR * scale);
+            newG = int(newG * scale);
+            newB = int(newB * scale);
+        }
+
+        return Color(newR, newG, newB);
+    }
     // Overload the * operator to scale colors by a factor
     __host__ __device__ Color operator*(float factor) const
     {
-        return Color(
-            uint8_t((r / 255.0f) * factor * 255),
-            uint8_t((g / 255.0f) * factor * 255),
-            uint8_t((b / 255.0f) * factor * 255));
+        int newR = int((r / 255.0f) * factor * 255);
+        int newG = int((g / 255.0f) * factor * 255);
+        int newB = int((b / 255.0f) * factor * 255);
+
+        int maxColor = max(max(newR, newG), newB);
+
+        if (maxColor > 255)
+        {
+            float scale = 255.0f / maxColor;
+            newR = int(newR * scale);
+            newG = int(newG * scale);
+            newB = int(newB * scale);
+        }
+
+        return Color(newR, newG, newB);
     }
 
     __host__ __device__ uint16_t toHex() const

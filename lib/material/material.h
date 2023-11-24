@@ -17,9 +17,9 @@ struct Material {
     float specularCoefficient;
     bool hasText;
     Texture texture;
-    float reflectivity = 0.0f;
-    float transparency = 0.0f;
-    float refractiveIndex = 0.0f;
+    float reflectivity;
+    float transparency;
+    float refractiveIndex;
 };
 
 #endif

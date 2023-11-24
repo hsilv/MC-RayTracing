@@ -45,10 +45,13 @@ __device__ Color castRay(const glm::vec3 &origin, const glm::vec3 &direction, Ob
     if (!globalIntersect.intersected)
     {
         if (depth == MAX_DEPTH)
-        {
-            return Color(0, 23, 29);
+        {   
+            return Color(18,25,32);
+            /* return Color(173, 216, 230); */
+            /* return Color(0+29+29, 23+29+29, 29+29+29); */
         }
-        return Color(173, 216, 230);
+        /* return Color(173, 216, 230); */
+        return Color(18,25,32);
     }
 
     Color color;
@@ -104,7 +107,7 @@ __device__ Color castRay(const glm::vec3 &origin, const glm::vec3 &direction, Ob
         diffuseColor = getTextureColor(globalIntersect.texCoords, mat.texture);
     }
 
-    diffuseLight = diffuseColor * light->intensity * diffuseLightIntensity * mat.albedo;
+    diffuseLight = (light->color * light->intensity * diffuseLightIntensity * light->colorIntensity) + (diffuseColor * light->intensity * diffuseLightIntensity * mat.albedo) * (1.0f / light->colorIntensity) ;
     specularLight = light->color * light->intensity * specularLightIntensity * mat.specularAlbedo;
     color = color + diffuseLight + specularLight;
 
@@ -115,6 +118,12 @@ __device__ Color castRay(const glm::vec3 &origin, const glm::vec3 &direction, Ob
 
     Color reflectedColor(0, 0, 0);
     Color refractedColor(0, 0, 0);
+    if (depth < MAX_DEPTH && mat.transparency > 0)
+    {
+        glm::vec3 origin = globalIntersect.point - globalIntersect.normal * 0.0001f;
+        glm::vec3 refractDir = glm::refract(direction, globalIntersect.normal, mat.refractiveIndex);
+        refractedColor = castRay(origin, refractDir, objects, numObjects, light, depth + 1);
+    }
 
     if (depth < MAX_DEPTH && mat.reflectivity > 0)
     {
@@ -124,25 +133,7 @@ __device__ Color castRay(const glm::vec3 &origin, const glm::vec3 &direction, Ob
         reflectedColor = castRay(globalIntersect.point + bias, reflectedDirection, objects, numObjects, light, depth + 1);
     }
 
-    if (depth < MAX_DEPTH && mat.transparency > 0)
-    {
-        glm::vec3 refractedDirection;
-        float eta = mat.refractiveIndex;
-        if (glm::dot(direction, globalIntersect.normal) > 0)
-        {
-            // Estamos dentro del objeto, invertir la normal y el índice de refracción
-            refractedDirection = glm::refract(direction, -globalIntersect.normal, eta);
-        }
-        else
-        {
-            refractedDirection = glm::refract(direction, globalIntersect.normal, 1.0f / eta);
-        }
-        // Añadir un pequeño bias a la posición desde la que se traza el rayo refractado
-        glm::vec3 bias = 0.0001f * globalIntersect.normal;
-        refractedColor = castRay(globalIntersect.point + bias, refractedDirection, objects, numObjects, light, depth + 1);
-    }
-
-    color = color * (1 - mat.reflectivity - mat.transparency) + reflectedColor * mat.reflectivity + refractedColor * mat.transparency;
+    color = color * (1.0f - mat.reflectivity - mat.transparency) + reflectedColor * mat.reflectivity + refractedColor * mat.transparency;
 
     return color;
 }

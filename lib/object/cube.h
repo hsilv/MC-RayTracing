@@ -22,6 +22,16 @@ public:
         float tfar = INFINITY;
         glm::vec3 normal;
 
+        float epsilon = 0.0001f;
+
+        bool inside = (origin.x >= min.x - epsilon && origin.x <= max.x + epsilon &&
+                       origin.y >= min.y - epsilon && origin.y <= max.y + epsilon &&
+                       origin.z >= min.z - epsilon && origin.z <= max.z + epsilon);
+
+        if (inside)
+        {
+            return Intersect{false};
+        }
         for (int i = 0; i < 3; ++i)
         {
             if (direction[i] == 0.0f)
@@ -43,7 +53,7 @@ public:
                     t2 = temp;
                 }
 
-                if (t1 > tnear)
+                if (t1 > tnear && !inside)
                 {
                     tnear = t1;
                     normal = glm::vec3(0);
@@ -63,6 +73,14 @@ public:
         }
 
         glm::vec3 point = origin + tnear * direction;
+        if (glm::dot(direction, normal) < 0)
+        {
+            point += 0.0001f * normal; // Desplaza el punto de intersección en la dirección de la normal
+        }
+        else
+        {
+            point -= 0.0001f * normal; // Desplaza el punto de intersección en la dirección opuesta a la normal
+        }
         glm::vec3 localPoint = point - min;
         glm::vec2 texCoords;
 

@@ -228,13 +228,13 @@ void setUp(SDL_Renderer *ren)
     Texture grass = getTexture("grass");
     addTexture(&grass);
 
-    Light light{glm::vec3(10.0f, -4.0f, -4.0f), 1.5f, Color(255, 255, 255)};
+    Light light{glm::vec3(4.5f, -1.0f, -3.5f), 0.5f, Color(255, 100, 0), 0.5f};
     addLight(light);
 
-    Light light2{glm::vec3(-10.0f, -10.0f, -5.0f), 1.5f, Color(255, 255, 255)};
+    Light light2{glm::vec3(-10.0f, -10.0f, -5.0f), 0.15f, Color(255, 255, 255), 0.2f};
     addLight(light2);
 
-    Material oakWood = Material{Color(100, 80, 0), 0.7f, 0.4f, 50.0f, true, wood};
+    Material oakWood = Material{Color(100, 80, 0), 0.7f, 0.1f, 50.0f, true, wood};
     addMaterial(oakWood);
 
     Material logMat = Material{Color(100, 80, 0), 0.6f, 0.4f, 50.0f, true, log};
@@ -255,8 +255,11 @@ void setUp(SDL_Renderer *ren)
     Material waterMat = Material{Color(100, 80, 0), 0.6f, 0.4f, 50.0f, true, water, 0.5f};
     addMaterial(waterMat);
 
-    Material portalMat = Material{Color(100, 80, 0), 0.6f, 0.4f, 50.0f, true, portal, 0.4f, 0.2f, 1.5f};
+    Material portalMat = Material{Color(100, 80, 0), 0.1f, 0.1f, 1.0f, true, portal, 0.3f, 0.0f, 0.0f};
     addMaterial(portalMat);
+
+    Material glass = Material{Color(18,25,32), 0.1f, 0.1f, 1.0f, false, portal, 0.0f, 0.7f, 0.5f};
+    addMaterial(glass);
 
     int numStairs = 4;
 
@@ -447,6 +450,17 @@ void setUp(SDL_Renderer *ren)
     addCube(glm::vec3(-3.0f, 1.0f, -10.0f), portalSize, portalMat);
     addCube(glm::vec3(-3.0f, 0.0f, -11.0f), portalSize, portalMat);
     addCube(glm::vec3(-3.0f, 0.0f, -10.0f), portalSize, portalMat);
+
+
+/*     addSphere(glm::vec3(6.0f, 2.0f, -7.0f), 1.0f, glass); */
+    addCube(glm::vec3(0.0f, 1.0f, -6.1f), glm::vec3(1.0f, 1.0f, 1.0f), glass);
+
+     addCube(glm::vec3(0.0f, 1.0f, -0.9f), glm::vec3(1.0f, 1.0f, 1.0f), glass);
+
+
+     addCube(glm::vec3(-2.1f, 1.0f, -4.0f), glm::vec3(1.0f, 1.0f, 1.0f), glass);
+
+     addCube(glm::vec3(-2.1f, 1.0f, -3.0f), glm::vec3(1.0f, 1.0f, 1.0f), glass);
 }
 
 #endif
