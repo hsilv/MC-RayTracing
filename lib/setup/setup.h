@@ -216,11 +216,11 @@ void setUp(SDL_Renderer *ren)
     Texture grass = getTexture("grass");
     addTexture(&grass);
 
-    Light light{glm::vec3(-3.0f, 1.0f, -4.0f), 1.5f, Color(255, 255, 255)};
+    Light light{glm::vec3(10.0f, -4.0f, -4.0f), 1.5f, Color(255, 255, 255)};
     addLight(light);
 
-/*     Light light2{glm::vec3(10.0f, -5.0f, -5.0f), 1.5f, Color(255, 255, 255)};
-    addLight(light2); */
+    /*     Light light2{glm::vec3(10.0f, -5.0f, -5.0f), 1.5f, Color(255, 255, 255)};
+        addLight(light2); */
 
     Material tempRubber = Material{Color(100, 100, 80), 0.9f, 0.1f, 10.0f, false};
     addMaterial(tempRubber);
@@ -245,99 +245,161 @@ void setUp(SDL_Renderer *ren)
 
     int numStairs = 4;
 
+    glm::vec3 blockSize = {1.0f, 1.0f, 1.0f};
     for (int x = 0; x < numStairs; x++)
     {
         if (x != numStairs - 1)
         {
-            addStair(glm::vec3(3.0f, -x, -x - 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), 2, oakWood);
-            addStair(glm::vec3(-3.0f, -x, -x - 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), 2, oakWood);
-            addStair(glm::vec3(3.0f, -x, x - 6.0f), glm::vec3(1.0f, 1.0f, 1.0f), 7, oakWood);
-            addStair(glm::vec3(-3.0f, -x, x - 6.0f), glm::vec3(1.0f, 1.0f, 1.0f), 7, oakWood);
+            addStair(glm::vec3(3.0f, -x, -x - 1.0f), blockSize, 2, oakWood);
+            addStair(glm::vec3(-3.0f, -x, -x - 1.0f), blockSize, 2, oakWood);
+            addStair(glm::vec3(3.0f, -x, x - 6.0f), blockSize, 7, oakWood);
+            addStair(glm::vec3(-3.0f, -x, x - 6.0f), blockSize, 7, oakWood);
         }
-        addStair(glm::vec3(3.0f, -x, -x), glm::vec3(1.0f, 1.0f, 1.0f), 0, oakWood);
-        addStair(glm::vec3(3.0f, -x, x - 7.0f), glm::vec3(1.0f, 1.0f, 1.0f), 6, oakWood);
-        addStair(glm::vec3(2.0f, -x, -x), glm::vec3(1.0f, 1.0f, 1.0f), 0, oakWood);
-        addStair(glm::vec3(2.0f, -x, x - 7.0f), glm::vec3(1.0f, 1.0f, 1.0f), 6, oakWood);
-        addStair(glm::vec3(1.0f, -x, -x), glm::vec3(1.0f, 1.0f, 1.0f), 0, oakWood);
-        addStair(glm::vec3(1.0f, -x, x - 7.0f), glm::vec3(1.0f, 1.0f, 1.0f), 6, oakWood);
-        addStair(glm::vec3(0.0f, -x, -x), glm::vec3(1.0f, 1.0f, 1.0f), 0, oakWood);
-        addStair(glm::vec3(0.0f, -x, x - 7.0f), glm::vec3(1.0f, 1.0f, 1.0f), 6, oakWood);
-        addStair(glm::vec3(-3.0f, -x, -x), glm::vec3(1.0f, 1.0f, 1.0f), 0, oakWood);
-        addStair(glm::vec3(-3.0f, -x, x - 7.0f), glm::vec3(1.0f, 1.0f, 1.0f), 6, oakWood);
-        addStair(glm::vec3(-2.0f, -x, -x), glm::vec3(1.0f, 1.0f, 1.0f), 0, oakWood);
-        addStair(glm::vec3(-2.0f, -x, x - 7.0f), glm::vec3(1.0f, 1.0f, 1.0f), 6, oakWood);
-        addStair(glm::vec3(-1.0f, -x, -x), glm::vec3(1.0f, 1.0f, 1.0f), 0, oakWood);
-        addStair(glm::vec3(-1.0f, -x, x - 7.0f), glm::vec3(1.0f, 1.0f, 1.0f), 6, oakWood);
+        addStair(glm::vec3(3.0f, -x, -x), blockSize, 0, oakWood);
+        addStair(glm::vec3(3.0f, -x, x - 7.0f), blockSize, 6, oakWood);
+        addStair(glm::vec3(2.0f, -x, -x), blockSize, 0, oakWood);
+        addStair(glm::vec3(2.0f, -x, x - 7.0f), blockSize, 6, oakWood);
+        addStair(glm::vec3(1.0f, -x, -x), blockSize, 0, oakWood);
+        addStair(glm::vec3(1.0f, -x, x - 7.0f), blockSize, 6, oakWood);
+        addStair(glm::vec3(0.0f, -x, -x), blockSize, 0, oakWood);
+        addStair(glm::vec3(0.0f, -x, x - 7.0f), blockSize, 6, oakWood);
+        addStair(glm::vec3(-3.0f, -x, -x), blockSize, 0, oakWood);
+        addStair(glm::vec3(-3.0f, -x, x - 7.0f), blockSize, 6, oakWood);
+        addStair(glm::vec3(-2.0f, -x, -x), blockSize, 0, oakWood);
+        addStair(glm::vec3(-2.0f, -x, x - 7.0f), blockSize, 6, oakWood);
+        addStair(glm::vec3(-1.0f, -x, -x), blockSize, 0, oakWood);
+        addStair(glm::vec3(-1.0f, -x, x - 7.0f), blockSize, 6, oakWood);
     }
 
-    addCube(glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), logMat);
-    addCube(glm::vec3(1.0f, 0.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), logMat);
-    addCube(glm::vec3(2.0f, 0.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), logMat);
-    addCube(glm::vec3(-1.0f, 0.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), logMat);
-    addCube(glm::vec3(-2.0f, 0.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), logMat);
+    addCube(glm::vec3(0.0f, 0.0f, -1.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(1.0f, 0.0f, -1.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(2.0f, 0.0f, -1.0f), blockSize, logMat);
+    addCube(glm::vec3(-1.0f, 0.0f, -1.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(-2.0f, 0.0f, -1.0f), blockSize, logMat);
 
-    addCube(glm::vec3(1.0f, 1.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), logMat);
-    addCube(glm::vec3(-1.0f, 1.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), logMat);
-    addCube(glm::vec3(2.0f, 1.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), logMat);
-    addCube(glm::vec3(-2.0f, 1.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), logMat);
-    addCube(glm::vec3(2.0f, 2.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), logMat);
-    addCube(glm::vec3(-2.0f, 2.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), logMat);
-    addCube(glm::vec3(2.0f, 3.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), logMat);
-    addCube(glm::vec3(-2.0f, 3.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), logMat);
-    addCube(glm::vec3(-1.0f, 3.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), cobblestoneMat);
-    addCube(glm::vec3(1.0f, 3.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), cobblestoneMat);
-    addCube(glm::vec3(0.0f, 3.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), cobblestoneMat);
-    addCube(glm::vec3(-1.0f, 2.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), cobblestoneMat);
-    addCube(glm::vec3(1.0f, 2.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), cobblestoneMat);
-    addCube(glm::vec3(0.0f, 2.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), cobblestoneMat);
+    addCube(glm::vec3(1.0f, 1.0f, -1.0f), blockSize, logMat);
+    addCube(glm::vec3(-1.0f, 1.0f, -1.0f), blockSize, logMat);
+    addCube(glm::vec3(2.0f, 1.0f, -1.0f), blockSize, logMat);
+    addCube(glm::vec3(-2.0f, 1.0f, -1.0f), blockSize, logMat);
+    addCube(glm::vec3(2.0f, 2.0f, -1.0f), blockSize, logMat);
+    addCube(glm::vec3(-2.0f, 2.0f, -1.0f), blockSize, logMat);
+    addCube(glm::vec3(2.0f, 3.0f, -1.0f), blockSize, logMat);
+    addCube(glm::vec3(-2.0f, 3.0f, -1.0f), blockSize, logMat);
+    addCube(glm::vec3(-1.0f, 3.0f, -1.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(1.0f, 3.0f, -1.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(0.0f, 3.0f, -1.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(-1.0f, 2.0f, -1.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(1.0f, 2.0f, -1.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(0.0f, 2.0f, -1.0f), blockSize, cobblestoneMat);
 
-    addCube(glm::vec3(2.0f, 3.0f, -2.0f), glm::vec3(1.0f, 1.0f, 1.0f), cobblestoneMat);
-    addCube(glm::vec3(2.0f, 2.0f, -2.0f), glm::vec3(1.0f, 1.0f, 1.0f), cobblestoneMat);
-    addCube(glm::vec3(2.0f, 1.0f, -2.0f), glm::vec3(1.0f, 1.0f, 1.0f), logMat);
-    addCube(glm::vec3(2.0f, 0.0f, -2.0f), glm::vec3(1.0f, 1.0f, 1.0f), cobblestoneMat);
+    addCube(glm::vec3(2.0f, 3.0f, -2.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(2.0f, 2.0f, -2.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(2.0f, 1.0f, -2.0f), blockSize, logMat);
+    addCube(glm::vec3(2.0f, 0.0f, -2.0f), blockSize, cobblestoneMat);
 
-    addCube(glm::vec3(2.0f, 3.0f, -3.0f), glm::vec3(1.0f, 1.0f, 1.0f), cobblestoneMat);
-    addCube(glm::vec3(2.0f, 3.0f, -4.0f), glm::vec3(1.0f, 1.0f, 1.0f), cobblestoneMat);
-    addCube(glm::vec3(2.0f, 3.0f, -5.0f), glm::vec3(1.0f, 1.0f, 1.0f), cobblestoneMat);
-    addCube(glm::vec3(2.0f, 3.0f, -6.0f), glm::vec3(1.0f, 1.0f, 1.0f), logMat);
+    addCube(glm::vec3(2.0f, 3.0f, -3.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(2.0f, 3.0f, -4.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(2.0f, 3.0f, -5.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(2.0f, 3.0f, -6.0f), blockSize, logMat);
 
-    addStair(glm::vec3(3.0f, 3.0f, -2.0f), glm::vec3(1.0f, 1.0f, 1.0f), 3, cobblestoneMat);
-    addStair(glm::vec3(3.0f, 3.0f, -3.0f), glm::vec3(1.0f, 1.0f, 1.0f), 5, cobblestoneMat);
-    addStair(glm::vec3(3.0f, 3.0f, -4.0f), glm::vec3(1.0f, 1.0f, 1.0f), 5, cobblestoneMat);
-    addStair(glm::vec3(3.0f, 3.0f, -5.0f), glm::vec3(1.0f, 1.0f, 1.0f), 4, cobblestoneMat);
+    addStair(glm::vec3(3.0f, 3.0f, -2.0f), blockSize, 3, cobblestoneMat);
+    addStair(glm::vec3(3.0f, 3.0f, -3.0f), blockSize, 5, cobblestoneMat);
+    addStair(glm::vec3(3.0f, 3.0f, -4.0f), blockSize, 5, cobblestoneMat);
+    addStair(glm::vec3(3.0f, 3.0f, -5.0f), blockSize, 4, cobblestoneMat);
 
-    addCube(glm::vec3(2.0f, 2.0f, -5.0f), glm::vec3(1.0f, 1.0f, 1.0f), cobblestoneMat);
-    addCube(glm::vec3(2.0f, 2.0f, -6.0f), glm::vec3(1.0f, 1.0f, 1.0f), logMat);
+    addCube(glm::vec3(2.0f, 2.0f, -5.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(2.0f, 2.0f, -6.0f), blockSize, logMat);
 
-    addCube(glm::vec3(2.0f, 1.0f, -5.0f), glm::vec3(1.0f, 1.0f, 1.0f), logMat);
-    addCube(glm::vec3(2.0f, 1.0f, -6.0f), glm::vec3(1.0f, 1.0f, 1.0f), logMat);
+    addCube(glm::vec3(2.0f, 1.0f, -5.0f), blockSize, logMat);
+    addCube(glm::vec3(2.0f, 1.0f, -6.0f), blockSize, logMat);
 
-    addCube(glm::vec3(2.0f, 0.0f, -5.0f), glm::vec3(1.0f, 1.0f, 1.0f), cobblestoneMat);
-    addCube(glm::vec3(2.0f, 0.0f, -6.0f), glm::vec3(1.0f, 1.0f, 1.0f), logMat);
+    addCube(glm::vec3(2.0f, 0.0f, -5.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(2.0f, 0.0f, -6.0f), blockSize, logMat);
 
-    addCube(glm::vec3(2.0f, 0.0f, -4.0f), glm::vec3(1.0f, 1.0f, 1.0f), cobblestoneMat);
-    addCube(glm::vec3(2.0f, 0.0f, -3.0f), glm::vec3(1.0f, 1.0f, 1.0f), cobblestoneMat);
+    addCube(glm::vec3(2.0f, 0.0f, -4.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(2.0f, 0.0f, -3.0f), blockSize, cobblestoneMat);
 
-    addCube(glm::vec3(2.0f, -1.0f, -4.0f), glm::vec3(1.0f, 1.0f, 1.0f), cobblestoneMat);
-    addCube(glm::vec3(2.0f, -1.0f, -3.0f), glm::vec3(1.0f, 1.0f, 1.0f), cobblestoneMat);
-    addCube(glm::vec3(2.0f, -1.0f, -2.0f), glm::vec3(1.0f, 1.0f, 1.0f), cobblestoneMat);
-    addCube(glm::vec3(2.0f, -1.0f, -5.0f), glm::vec3(1.0f, 1.0f, 1.0f), cobblestoneMat);
+    addCube(glm::vec3(2.0f, -1.0f, -4.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(2.0f, -1.0f, -3.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(2.0f, -1.0f, -2.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(2.0f, -1.0f, -5.0f), blockSize, cobblestoneMat);
 
-    addCube(glm::vec3(2.0f, -2.0f, -4.0f), glm::vec3(1.0f, 1.0f, 1.0f), cobblestoneMat);
-    addCube(glm::vec3(2.0f, -2.0f, -3.0f), glm::vec3(1.0f, 1.0f, 1.0f), cobblestoneMat);
+    addCube(glm::vec3(2.0f, -2.0f, -4.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(2.0f, -2.0f, -3.0f), blockSize, cobblestoneMat);
 
-    int blockX = 5;
-    int blockZ = 8;
+    addCube(glm::vec3(-2.0f, 3.0f, -6.0f), blockSize, logMat);
+    addCube(glm::vec3(-1.0f, 3.0f, -6.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(0.0f, 3.0f, -6.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(1.0f, 3.0f, -6.0f), blockSize, cobblestoneMat);
 
-    addGrassBlock(glm::vec3(0.0f, 4.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), grassMat, earthgrassMat);
-    for (float x = 0.0f; x < blockX; x++)
-    {
-        for (float z = 0.0f; z < blockZ; z++)
+    addCube(glm::vec3(-2.0f, 2.0f, -6.0f), blockSize, logMat);
+    addCube(glm::vec3(-1.0f, 2.0f, -6.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(0.0f, 2.0f, -6.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(1.0f, 2.0f, -6.0f), blockSize, cobblestoneMat);
+
+    addCube(glm::vec3(-2.0f, 1.0f, -6.0f), blockSize, logMat);
+    addCube(glm::vec3(-1.0f, 1.0f, -6.0f), blockSize, logMat);
+    addCube(glm::vec3(1.0f, 1.0f, -6.0f), blockSize, logMat);
+
+    addCube(glm::vec3(-2.0f, 0.0f, -6.0f), blockSize, logMat);
+    addCube(glm::vec3(-1.0f, 0.0f, -6.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(0.0f, 0.0f, -6.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(1.0f, 0.0f, -6.0f), blockSize, cobblestoneMat);
+
+    addCube(glm::vec3(-1.0f, 3.0f, -5.0f), blockSize, oakWood);
+    addCube(glm::vec3(0.0f, 3.0f, -5.0f), blockSize, oakWood);
+    addCube(glm::vec3(1.0f, 3.0f, -5.0f), blockSize, oakWood);
+
+    addCube(glm::vec3(-1.0f, 3.0f, -4.0f), blockSize, oakWood);
+    addCube(glm::vec3(0.0f, 3.0f, -4.0f), blockSize, oakWood);
+    addCube(glm::vec3(1.0f, 3.0f, -4.0f), blockSize, oakWood);
+
+    addCube(glm::vec3(-1.0f, 3.0f, -3.0f), blockSize, oakWood);
+    addCube(glm::vec3(0.0f, 3.0f, -3.0f), blockSize, oakWood);
+    addCube(glm::vec3(1.0f, 3.0f, -3.0f), blockSize, oakWood);
+
+    addCube(glm::vec3(-1.0f, 3.0f, -2.0f), blockSize, oakWood);
+    addCube(glm::vec3(0.0f, 3.0f, -2.0f), blockSize, oakWood);
+    addCube(glm::vec3(1.0f, 3.0f, -2.0f), blockSize, oakWood);
+
+    addCube(glm::vec3(-2.0f, 3.0f, -4.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(-2.0f, 3.0f, -3.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(-2.0f, 3.0f, -2.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(-2.0f, 3.0f, -5.0f), blockSize, cobblestoneMat);
+
+    addCube(glm::vec3(-2.0f, 2.0f, -4.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(-2.0f, 2.0f, -3.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(-2.0f, 2.0f, -2.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(-2.0f, 2.0f, -5.0f), blockSize, cobblestoneMat);
+
+    addCube(glm::vec3(-2.0f, 1.0f, -5.0f), blockSize, logMat);
+    addCube(glm::vec3(-2.0f, 1.0f, -2.0f), blockSize, logMat);
+
+    addCube(glm::vec3(-2.0f, 0.0f, -4.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(-2.0f, 0.0f, -3.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(-2.0f, 0.0f, -2.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(-2.0f, 0.0f, -5.0f), blockSize, cobblestoneMat);
+
+    addCube(glm::vec3(-2.0f, -1.0f, -4.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(-2.0f, -1.0f, -3.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(-2.0f, -1.0f, -2.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(-2.0f, -1.0f, -5.0f), blockSize, cobblestoneMat);
+
+    addCube(glm::vec3(-2.0f, -2.0f, -3.0f), blockSize, cobblestoneMat);
+    addCube(glm::vec3(-2.0f, -2.0f, -4.0f), blockSize, cobblestoneMat);
+
+    /*     int blockX = 5;
+        int blockZ = 8;
+
+        addGrassBlock(glm::vec3(0.0f, 4.0f, 0.0f), blockSize, grassMat, earthgrassMat);
+        for (float x = 0.0f; x < blockX; x++)
         {
-            addGrassBlock(glm::vec3(x, 4.0f, -z), glm::vec3(1.0f, 1.0f, 1.0f), grassMat, earthgrassMat);
-            addGrassBlock(glm::vec3(-x, 4.0f, -z), glm::vec3(1.0f, 1.0f, 1.0f), grassMat, earthgrassMat);
-        }
-    }
+            for (float z = 0.0f; z < blockZ; z++)
+            {
+                addGrassBlock(glm::vec3(x, 4.0f, -z), blockSize, grassMat, earthgrassMat);
+                addGrassBlock(glm::vec3(-x, 4.0f, -z), blockSize, grassMat, earthgrassMat);
+            }
+        } */
 
     addSphere(glm::vec3(0.0f, 0.0f, -1.0f), 0.5f, tempRubber);
 }
