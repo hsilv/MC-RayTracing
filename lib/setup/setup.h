@@ -200,6 +200,18 @@ void setUp(SDL_Renderer *ren)
     loadImage("cobblestone", "./src/cobblestone.jpg");
     loadImage("grass", "./src/grass.jpg");
     loadImage("earthgrass", "./src/earthgrass.jpg");
+    loadImage("obsidian", "./src/obsidian.jpg");
+    loadImage("water", "./src/water.jpeg");
+    loadImage("portal", "./src/portal.png");
+
+    Texture portal = getTexture("portal");
+    addTexture(&portal);
+
+    Texture water = getTexture("water");
+    addTexture(&water);
+
+    Texture obsidian = getTexture("obsidian");
+    addTexture(&obsidian);
 
     Texture earthgrass = getTexture("earthgrass");
     addTexture(&earthgrass);
@@ -219,14 +231,8 @@ void setUp(SDL_Renderer *ren)
     Light light{glm::vec3(10.0f, -4.0f, -4.0f), 1.5f, Color(255, 255, 255)};
     addLight(light);
 
-    /*     Light light2{glm::vec3(10.0f, -5.0f, -5.0f), 1.5f, Color(255, 255, 255)};
-        addLight(light2); */
-
-    Material tempRubber = Material{Color(100, 100, 80), 0.9f, 0.1f, 10.0f, false};
-    addMaterial(tempRubber);
-
-    Material tempIvory = Material{Color(80, 0, 0), 0.6f, 0.4f, 50.0f, false};
-    addMaterial(tempIvory);
+    Light light2{glm::vec3(-10.0f, -10.0f, -5.0f), 1.5f, Color(255, 255, 255)};
+    addLight(light2);
 
     Material oakWood = Material{Color(100, 80, 0), 0.7f, 0.4f, 50.0f, true, wood};
     addMaterial(oakWood);
@@ -243,9 +249,20 @@ void setUp(SDL_Renderer *ren)
     Material earthgrassMat = Material{Color(100, 80, 0), 0.6f, 0.4f, 50.0f, true, earthgrass};
     addMaterial(earthgrassMat);
 
+    Material obsidianMat = Material{Color(100, 80, 0), 0.6f, 0.4f, 50.0f, true, obsidian};
+    addMaterial(obsidianMat);
+
+    Material waterMat = Material{Color(100, 80, 0), 0.6f, 0.4f, 50.0f, true, water, 0.5f};
+    addMaterial(waterMat);
+
+    Material portalMat = Material{Color(100, 80, 0), 0.6f, 0.4f, 50.0f, true, portal, 0.4f, 0.2f, 1.5f};
+    addMaterial(portalMat);
+
     int numStairs = 4;
 
     glm::vec3 blockSize = {1.0f, 1.0f, 1.0f};
+
+    glm::vec3 portalSize = {0.2f, 1.0f, 1.0f};
     for (int x = 0; x < numStairs; x++)
     {
         if (x != numStairs - 1)
@@ -388,20 +405,48 @@ void setUp(SDL_Renderer *ren)
     addCube(glm::vec3(-2.0f, -2.0f, -3.0f), blockSize, cobblestoneMat);
     addCube(glm::vec3(-2.0f, -2.0f, -4.0f), blockSize, cobblestoneMat);
 
-    /*     int blockX = 5;
-        int blockZ = 8;
+    int blockX = 6;
+    int blockZ = 14;
 
-        addGrassBlock(glm::vec3(0.0f, 4.0f, 0.0f), blockSize, grassMat, earthgrassMat);
-        for (float x = 0.0f; x < blockX; x++)
+    addGrassBlock(glm::vec3(0.0f, 4.0f, 0.0f), blockSize, grassMat, earthgrassMat);
+    for (float x = 0.0f; x < blockX; x++)
+    {
+        for (float z = 0.0f; z < blockZ; z++)
         {
-            for (float z = 0.0f; z < blockZ; z++)
+            if ((-z > -2.0f || -z < -5.0f) || (x > 2.0f))
             {
                 addGrassBlock(glm::vec3(x, 4.0f, -z), blockSize, grassMat, earthgrassMat);
                 addGrassBlock(glm::vec3(-x, 4.0f, -z), blockSize, grassMat, earthgrassMat);
             }
-        } */
+        }
+    }
 
-    addSphere(glm::vec3(0.0f, 0.0f, -1.0f), 0.5f, tempRubber);
+    addCube(glm::vec3(-3.0f, 3.0f, -9.0f), blockSize, obsidianMat);
+    addCube(glm::vec3(-3.0f, 3.0f, -10.0f), blockSize, obsidianMat);
+    addCube(glm::vec3(-3.0f, 3.0f, -11.0f), blockSize, obsidianMat);
+    addCube(glm::vec3(-3.0f, 3.0f, -12.0f), blockSize, obsidianMat);
+
+    addCube(glm::vec3(-3.0f, -1.0f, -9.0f), blockSize, obsidianMat);
+    addCube(glm::vec3(-3.0f, -1.0f, -10.0f), blockSize, obsidianMat);
+    addCube(glm::vec3(-3.0f, -1.0f, -11.0f), blockSize, obsidianMat);
+    addCube(glm::vec3(-3.0f, -1.0f, -12.0f), blockSize, obsidianMat);
+
+    addCube(glm::vec3(-3.0f, 0.0f, -9.0f), blockSize, obsidianMat);
+    addCube(glm::vec3(-3.0f, 1.0f, -9.0f), blockSize, obsidianMat);
+    addCube(glm::vec3(-3.0f, 2.0f, -9.0f), blockSize, obsidianMat);
+    addCube(glm::vec3(-3.0f, 3.0f, -9.0f), blockSize, obsidianMat);
+
+    addCube(glm::vec3(-3.0f, 0.0f, -12.0f), blockSize, obsidianMat);
+    addCube(glm::vec3(-3.0f, 1.0f, -12.0f), blockSize, obsidianMat);
+    addCube(glm::vec3(-3.0f, 2.0f, -12.0f), blockSize, obsidianMat);
+    addCube(glm::vec3(-3.0f, 3.0f, -12.0f), blockSize, obsidianMat);
+
+    addCube(glm::vec3(-3.0f, 2.0f, -11.0f), portalSize, portalMat);
+    addCube(glm::vec3(-3.0f, 2.0f, -10.0f), portalSize, portalMat);
+    addCube(glm::vec3(-3.0f, 1.0f, -11.0f), portalSize, portalMat);
+    addCube(glm::vec3(-3.0f, 1.0f, -10.0f), portalSize, portalMat);
+    addCube(glm::vec3(-3.0f, 0.0f, -11.0f), portalSize, portalMat);
+    addCube(glm::vec3(-3.0f, 0.0f, -10.0f), portalSize, portalMat);
 }
 
 #endif

@@ -24,7 +24,7 @@
 Color Background = {0, 0, 0};
 const float ASPECT_RATIO = static_cast<float>(SCREEN_WIDTH) / static_cast<float>(SCREEN_HEIGHT);
 
-Camera camera(glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f, 0.0f, -4.0f), glm::vec3(0.0f, 1.0f, 0.0f), 10.0f);
+Camera camera(glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f, 0.0f, -7.0f), glm::vec3(0.0f, 1.0f, 0.0f), 10.0f);
 
 __global__ void render(Point *buffer, ObjectWrapper *objects, int numObjects, Light *lights, int numLights, Camera camera)
 {
@@ -56,13 +56,6 @@ __global__ void render(Point *buffer, ObjectWrapper *objects, int numObjects, Li
   buffer[index].color = buffer[index].color + p.color;
 }
 
-/* __global__ void normalizeColors(Point *buffer, int numLights)
-{
-  int index = blockIdx.x * blockDim.x + threadIdx.x;
-  float factor = 1.0f / numLights;
-  buffer[index].color = buffer[index].color * factor;
-}
- */
 void destroy()
 {
 
@@ -108,7 +101,7 @@ int main(int argc, char *argv[])
   {
     cudaDeviceProp deviceProp;
     cudaGetDeviceProperties(&deviceProp, 0);
-    numCores = std::min(deviceProp.multiProcessorCount * _ConvertSMVer2Cores(deviceProp.major, deviceProp.minor), 1024);
+    numCores = std::min(deviceProp.multiProcessorCount * _ConvertSMVer2Cores(deviceProp.major, deviceProp.minor), 512);
   }
 
   int numBlocks = (SCREEN_WIDTH * SCREEN_HEIGHT + numCores - 1) / numCores;
@@ -203,6 +196,8 @@ int main(int argc, char *argv[])
     cudaMalloc(&device_points, SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(Point));
     cudaMemset(device_points, 0, SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(Point));
 
+    cudaCheckError();
+
     // Lanza un kernel por cada luz
     for (int i = 0; i < lightPointers.size(); i++)
     {
@@ -211,8 +206,7 @@ int main(int argc, char *argv[])
       cudaDeviceSynchronize();
     }
 
-/*     normalizeColors<<<numBlocks, numCores>>>(device_points, lightPointers.size());
-    cudaDeviceSynchronize(); */
+    cudaCheckError();
 
     // Copia los puntos calculados al buffer de puntos del host
     cudaMemcpy(host_buffer, device_points, SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(Point), cudaMemcpyDeviceToHost);
