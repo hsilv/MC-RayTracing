@@ -11,19 +11,20 @@
 #include "random.h"
 #include "setup.h"
 
-#define cudaCheckError() { \
-    cudaError_t e=cudaGetLastError(); \
-    if(e!=cudaSuccess) { \
-        printf("Cuda failure %s:%d: '%s'\n",__FILE__,__LINE__,cudaGetErrorString(e)); \
-        exit(EXIT_FAILURE); \
-    } \
-}
+#define cudaCheckError()                                                               \
+  {                                                                                    \
+    cudaError_t e = cudaGetLastError();                                                \
+    if (e != cudaSuccess)                                                              \
+    {                                                                                  \
+      printf("Cuda failure %s:%d: '%s'\n", __FILE__, __LINE__, cudaGetErrorString(e)); \
+      exit(EXIT_FAILURE);                                                              \
+    }                                                                                  \
+  }
 
 Color Background = {0, 0, 0};
 const float ASPECT_RATIO = static_cast<float>(SCREEN_WIDTH) / static_cast<float>(SCREEN_HEIGHT);
 
-
-Camera camera(glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), 10.0f);
+Camera camera(glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f, 0.0f, -4.0f), glm::vec3(0.0f, 1.0f, 0.0f), 10.0f);
 
 __global__ void render(Point *buffer, ObjectWrapper *objects, int numObjects, Light *lights, int numLights, Camera camera)
 {
@@ -43,13 +44,25 @@ __global__ void render(Point *buffer, ObjectWrapper *objects, int numObjects, Li
   glm::vec3 cameraX = glm::normalize(glm::cross(cameraDirection, camera.up));
   glm::vec3 cameraY = glm::normalize(glm::cross(cameraX, cameraDirection));
   glm::vec3 rayDirection = glm::normalize(cameraX * screenX + cameraY * screenY + cameraDirection);
-
-  Color pixelColor = castRay(camera.position, rayDirection, objects, numObjects, lights, numLights);
+  Color pixelColor = {1, 1, 1};
+  float factor = 1.0f / numLights;
+  pixelColor = pixelColor + castRay(camera.position, rayDirection, objects, numObjects, &lights[0]);
+  pixelColor = pixelColor * factor;
   Point p = {x, y, 0, pixelColor};
 
-  buffer[index] = p;
+  buffer[index].x = p.x;
+  buffer[index].y = p.y;
+  buffer[index].z = p.z;
+  buffer[index].color = buffer[index].color + p.color;
 }
 
+/* __global__ void normalizeColors(Point *buffer, int numLights)
+{
+  int index = blockIdx.x * blockDim.x + threadIdx.x;
+  float factor = 1.0f / numLights;
+  buffer[index].color = buffer[index].color * factor;
+}
+ */
 void destroy()
 {
 
@@ -74,7 +87,8 @@ void destroy()
     lightPointers.pop_back();
   }
 
-  while(texturePointers.size() == 0){
+  while (texturePointers.size() == 0)
+  {
     Texture *tex = texturePointers.back();
     cudaFree(tex);
     texturePointers.pop_back();
@@ -145,7 +159,7 @@ int main(int argc, char *argv[])
           }
           else
           {
-            camera.move(-0.08f * 2.0f );
+            camera.move(-0.08f * 2.0f);
           }
           break;
         case SDLK_DOWN:
@@ -155,22 +169,22 @@ int main(int argc, char *argv[])
           }
           else
           {
-            camera.move(0.08f * 2.0f );
+            camera.move(0.08f * 2.0f);
           }
           break;
 
         case SDLK_w:
-          camera.rotate(0.12f , 0.0f);
+          camera.rotate(0.12f, 0.0f);
           break;
 
         case SDLK_s:
-          camera.rotate(-0.12f , 0.0f);
+          camera.rotate(-0.12f, 0.0f);
           break;
 
         case SDLK_a:
           camera.rotate(0.0f, 0.12f);
           break;
-        
+
         case SDLK_d:
           camera.rotate(0.0f, -0.12f);
           break;
@@ -183,15 +197,30 @@ int main(int argc, char *argv[])
     initBuffer();
 
     ObjectWrapper *raw_ptr = thrust::raw_pointer_cast(objects.data());
-    Light *raw_lights = thrust::raw_pointer_cast(lights.data());
 
-    render<<<numBlocks, numCores>>>(dev_buffer, raw_ptr, objects.size(), raw_lights, lightPointers.size(), camera);
-    cudaCheckError();
-    cudaDeviceSynchronize();
-    cudaCheckError();
-    cudaMemcpy(host_buffer, dev_buffer, SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(Point), cudaMemcpyDeviceToHost);
+    // Inicializa el buffer de puntos en la GPU
+    Point *device_points;
+    cudaMalloc(&device_points, SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(Point));
+    cudaMemset(device_points, 0, SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(Point));
+
+    // Lanza un kernel por cada luz
+    for (int i = 0; i < lightPointers.size(); i++)
+    {
+      Light *light = thrust::raw_pointer_cast(&lights[i]);
+      render<<<numBlocks, numCores>>>(device_points, raw_ptr, objects.size(), light, 1, camera);
+      cudaDeviceSynchronize();
+    }
+
+/*     normalizeColors<<<numBlocks, numCores>>>(device_points, lightPointers.size());
+    cudaDeviceSynchronize(); */
+
+    // Copia los puntos calculados al buffer de puntos del host
+    cudaMemcpy(host_buffer, device_points, SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(Point), cudaMemcpyDeviceToHost);
 
     renderBuffer(renderer, host_buffer);
+
+    // Libera el buffer de puntos
+    cudaFree(device_points);
 
     destroyBuffer();
 

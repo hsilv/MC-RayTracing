@@ -22,7 +22,7 @@ __device__ Color getTextureColor(const glm::vec2 &texCoords, const Texture &text
     return color;
 }
 
-__device__ Color castRay(const glm::vec3 &origin, const glm::vec3 &direction, ObjectWrapper *objects, int numObjects, Light *lights, int numLights)
+__device__ Color castRay(const glm::vec3 &origin, const glm::vec3 &direction, ObjectWrapper *objects, int numObjects, Light *light)
 {
     float zBuffer = INFINITY;
     Object *hitObject = nullptr;
@@ -47,57 +47,64 @@ __device__ Color castRay(const glm::vec3 &origin, const glm::vec3 &direction, Ob
 
     Color color;
 
-    if (numLights == 0)
+    if (light == nullptr)
     {
         return hitObject->material.diffuse;
     }
 
-    if (numLights > 0)
+    glm::vec3 lightDir;
+    Material mat;
+    glm::vec3 viewDirection;
+    glm::vec3 reflectDirection;
+    float diffuseLightIntensity;
+    float specularLightIntensity;
+    bool inShadow;
+    Color diffuseColor;
+    Color diffuseLight;
+    Color specularLight;
+
+    lightDir = glm::normalize(light->position - globalIntersect.point);
+    mat = hitObject->material;
+
+    viewDirection = glm::normalize(origin - globalIntersect.point);
+    reflectDirection = glm::reflect(-lightDir, globalIntersect.normal);
+
+    diffuseLightIntensity = glm::dot(lightDir, globalIntersect.normal);
+    diffuseLightIntensity = glm::max(diffuseLightIntensity, 0.0f);
+
+    specularLightIntensity = 0.0f;
+    if (diffuseLightIntensity > 0.0f)
     {
-        Light light = lights[0];
-        glm::vec3 lightDir = glm::normalize(light.position - globalIntersect.point);
-        Material mat = hitObject->material;
+        float specReflection = glm::dot(viewDirection, reflectDirection);
+        specularLightIntensity = pow(specReflection, mat.specularCoefficient);
+    }
 
-        glm::vec3 viewDirection = glm::normalize(origin - globalIntersect.point);
-        glm::vec3 reflectDirection = glm::reflect(-lightDir, globalIntersect.normal);
-
-        float diffuseLightIntensity = glm::dot(lightDir, globalIntersect.normal);
-        diffuseLightIntensity = glm::max(diffuseLightIntensity, 0.0f);
-
-        float specularLightIntensity = 0.0f;
-        if (diffuseLightIntensity > 0.0f)
+    // Shadow check
+    inShadow = false;
+    for (int i = 0; i < numObjects; i++)
+    {
+        Intersect shadowIntersect = objects[i].rayIntersect(globalIntersect.point + 0.01f * lightDir, lightDir);
+        if (shadowIntersect.intersected)
         {
-            float specReflection = glm::dot(viewDirection, reflectDirection);
-            specularLightIntensity = pow(specReflection, mat.specularCoefficient);
+            inShadow = true;
+            break;
         }
+    }
 
-        // Shadow check
-        bool inShadow = false;
-        for (int i = 0; i < numObjects; i++)
-        {
-            Intersect shadowIntersect = objects[i].rayIntersect(globalIntersect.point + 0.01f * lightDir, lightDir);
-            if (shadowIntersect.intersected)
-            {
-                inShadow = true;
-                break;
-            }
-        }
+    // Texture mapping
+    diffuseColor = mat.diffuse;
+    if (mat.hasText)
+    {
+        diffuseColor = getTextureColor(globalIntersect.texCoords, mat.texture);
+    }
 
-        // Texture mapping
-        Color diffuseColor = mat.diffuse;
-        if (mat.hasText)
-        {
-            diffuseColor = getTextureColor(globalIntersect.texCoords, mat.texture);
-        }
+    diffuseLight = diffuseColor * light->intensity * diffuseLightIntensity * mat.albedo;
+    specularLight = light->color * light->intensity * specularLightIntensity * mat.specularAlbedo;
+    color = color + diffuseLight + specularLight;
 
-        Color diffuseLight = diffuseColor * light.intensity * diffuseLightIntensity * mat.albedo;
-        Color specularLight = light.color * light.intensity * specularLightIntensity * mat.specularAlbedo;
-        color = color + diffuseLight + specularLight;
-
-        if (inShadow)
-        {
-            color = color * 0.2f;
-        }
+    if (inShadow)
+    {
+        color = color * 0.2f;
     }
 
     return color;
